@@ -1,11 +1,11 @@
 {
-  "name": "@davidhirtz/jquery-router",
+  "name": "skeleton-router",
   "version": "1.0.0",
-  "description": "jQuery based client-side router",
+  "description": "A simple jQuery-based client-side router",
   "main": "dist/router.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidhirtz/jquery-router.git"
+    "url": "git+https://github.com/davidhirtz/skeleton-router.git"
   },
   "keywords": [
     "jQuery",
@@ -14,7 +14,7 @@
   "author": "David Hirtz",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/davidhirtz/jquery-router/issues"
+    "url": "https://github.com/davidhirtz/skeleton-router/issues"
   },
-  "homepage": "https://github.com/davidhirtz/jquery-router#readme"
+  "homepage": "https://github.com/davidhirtz/skeleton-router#readme"
 }
