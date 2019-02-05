@@ -1,35 +1,37 @@
-var Router=(function()
+var Router = (function ()
 {
-	return function(o)
+	return function (o)
 	{
-		var _=this;
+		var _ = this;
 
-		_.$container=$('main');
-		_.$body=$('body');
+		_.$container = $('main');
+		_.$body = $('body');
 
-		_.headers={'X-Ajax-Request':'route'};
-		_.defaultRoute='home';
+		_.headers = {'X-Ajax-Request': 'route'};
+		_.defaultRoute = 'home';
 
-		_.params=_.onUnload=_.deconstruct=_.referrer=_.trackingId=null;
-		_.routes={};
-		_.trackingConfig={};
+		_.onUnload = _.deconstruct = _.referrer = _.trackingId = null;
 
-		_.loadingClass='loading';
-		_.noXhrClass='no-xhr';
-		_.noCacheClass='no-cache';
+		_.trackingConfig = {};
 
-		_.cookieName='_cc';
-		_.$cookieContainer=$('#cc');
-		_.$cookieAccept=$('.cc-accept');
+		_.loadingClass = 'loading';
+		_.noXhrClass = 'no-xhr';
+		_.noCacheClass = 'no-cache';
+
+		_.cookieName = '_cc';
+		_.$cookieContainer = $('#cc');
+		_.$cookieAccept = $('.cc-accept');
 
 		$.extend(_, o);
 
-		_.cache={};
-		_.positions={};
+		_.cache = {};
+		_.positions = {};
 
-		_.analyticsLoaded=false;
+		_.analyticsLoaded = _.isPopState = false;
 
 		_.init();
+		_.getRequest();
+
 		_.loadAnalytics(_.trackingId);
 		_.cookieConsent();
 
@@ -40,36 +42,35 @@ var Router=(function()
 /**
  * Inits ajax routing events.
  */
-Router.prototype.init=function()
+Router.prototype.init = function ()
 {
-	var _=this,
-		origin=/^.+?\/\/+[^/]+/,
-		win=window,
-		doc=document,
-		hist=history,
-		loc=hist.location || win.location;
+	var _ = this,
+		win = window,
+		doc = document,
+		hist = history,
+		loc = hist.location || win.location;
 
-	$(win).on('popstate', function(e)
+	$(win).on('popstate', function (e)
 	{
-		_.load(false);
+		_.isPopState = true;
+		_.load();
+
 		e.preventDefault();
 	});
 
-	$(doc).on('click', 'a', function(e)
+	$(doc).on('click', 'a', function (e)
 	{
-		var t=this;
+		var t = this;
 
 		_.onClick(e);
 
-		if(e.isDefaultPrevented() || e.ctrlKey || e.metaKey || e.shiftKey || !t.hasAttribute('href') || t.hasAttribute('download') || t.classList.contains(_.noXhrClass) || t.target && t.target!=='_self' || t.href.indexOf(loc.href.match(origin)[0])=== -1)
-		{
+		if (e.isDefaultPrevented() || e.ctrlKey || e.metaKey || e.shiftKey || !t.hasAttribute('href') || t.hasAttribute('download') || t.classList.contains(_.noXhrClass) || t.target && t.target !== '_self' || t.href.indexOf(_.getHost()) === -1) {
 			return;
 		}
 
-		if(t.href!==loc.href)
-		{
+		if (t.href !== loc.href) {
 			hist.pushState(null, t.title || doc.title, _.sanitizeUrl(t.href));
-			_.load(true, t.classList.contains(_.noCacheClass) ? {cache:false} : null);
+			_.load(t.classList.contains(_.noCacheClass) ? {cache: false} : null);
 		}
 
 		e.preventDefault();
@@ -81,196 +82,243 @@ Router.prototype.init=function()
 /**
  * Global link click event.
  */
-Router.prototype.onClick=function()
+Router.prototype.onClick = function ()
 {
 };
 
 /**
  * Triggers after init before first render.
  */
-Router.prototype.afterInit=function()
+Router.prototype.afterInit = function ()
 {
 };
 
 /**
  * Loads page via ajax or from cache.
  */
-Router.prototype.load=function(reset, options)
+Router.prototype.load = function (options)
 {
-	var _=this,
-		path=window.location.pathname,
-		request=null;
+	var _ = this,
+		redirect = null,
+		request = null;
 
-	_.positions[_.referrer]={x:window.pageXOffset, y:window.pageYOffset};
-	_.beforeLoad(reset);
+	_.positions[_.referrer] = {x: window.pageXOffset, y: window.pageYOffset};
+	_.getRequest();
 
-	if(!_.cache[path] || options)
-	{
-		request=$.ajax($.extend({url:path, headers:_.headers}, options || {})).done(function(body)
-			{
-				_.cache[path]=body;
-			})
-			.fail(function(jqxhr)
-			{
-				var redirect=jqxhr.getResponseHeader('X-Redirect');
+	if (_.beforeLoad()) {
 
-				if(redirect)
+		if (!_.cache[_.href] || options) {
+			request = $.ajax($.extend({url: _.href, headers: _.headers}, options || {}))
+				.done(function (body)
 				{
-					window.location.href=redirect;
-				}
-			});
-	}
+					_.cache[_.href] = body;
+				})
+				.fail(function (jqxhr)
+				{
+					redirect = jqxhr.getResponseHeader('X-Redirect');
+				});
+		}
 
-	// Wait till deconstruct (if needed) and request are done.
-	//noinspection JSUnresolvedFunction
-	$.when.apply($, [_.deconstruct, request].filter(function(v)
+		// Wait till deconstruct (if needed) and request are done.
+		$.when.apply($, [_.deconstruct, request].filter(function (v)
 		{
 			return v;
 		}))
-		.done(function()
-		{
-			_.afterLoad(_.cache[path], reset);
-			_.render();
-			_.updateAnalytics(path);
-
-			if(!reset && _.positions[path])
+			.always(function ()
 			{
-				window.scrollTo(_.positions[path].x, _.positions[path].y);
-			}
-		});
+				_.afterLoad();
+				_.updateAnalytics();
+
+				if (redirect) {
+
+					if (redirect.indexOf(_.getHost()) === -1) {
+						window.location.href = redirect;
+					}
+
+					history.pushState(null, document.title, _.sanitizeUrl(redirect));
+					_.load({cache: false});
+					return;
+				}
+
+				_.render();
+			});
+	}
 };
 
 /**
- * Triggers before ajax load.
+ * Default implementation checks for onUnload deferred object for loading functionality.
+ * If set onUnload needs to call _.deconstruct.resolve() to trigger render.
+ *
+ * @return boolean whether load request should be executed.
  */
-Router.prototype.beforeLoad=function()
+Router.prototype.beforeLoad = function ()
 {
-	var _=this;
+	var _ = this;
+
 	_.$body.addClass(_.loadingClass).trigger('unload');
 
-	if(_.onUnload)
-	{
-		// If unload is set, it must call _.deconstruct.resolve().
-		_.deconstruct=$.Deferred();
+	if (_.onUnload) {
+		_.deconstruct = $.Deferred();
 		_.onUnload();
 	}
+
+	return true;
 };
 
 /**
- * Renders content after ajax load.
+ * Is called before a ajax request is rendered. Default implementation removes loader elements
+ * set in beforeLoad(). This can be overwritten if onUnload is not used.
  */
-Router.prototype.afterLoad=function(html)
+Router.prototype.afterLoad = function ()
 {
-	var _=this;
+	var _ = this;
 
-	window.scrollTo(0, 0);
-
-	_.deconstruct=null;
 	_.$body.removeClass(_.loadingClass);
-
-	_.$container.html(html);
+	_.deconstruct = null;
 };
 
 /**
- * Renders all page.
+ * Renders page by first url parameter.
  */
-Router.prototype.render=function()
+Router.prototype.render = function ()
 {
-	var _=this,
-		path=window.location.pathname,
-		func;
+	var _ = this,
+		func = (_.params[0] || _.defaultRoute);
 
-	_.params=path.replace(/^\//, '').split(/[/?#]/);
+	if (_.beforeRender()) {
+		func = 'render' + func[0].toUpperCase() + func.slice(1);
+		_[(typeof _[func] === 'function' ? func : 'renderContent')](_.cache[_.href]);
 
-	func=(_.params[0] || _.defaultRoute);
-	func='render'+func[0].toUpperCase()+func.slice(1);
-
-	if(typeof _[func]==='function')
-	{
-		_[func]();
+		_.afterRender();
 	}
 
-	_.afterRender();
-	_.referrer=path;
+	_.referrer = _.href;
+	_.isPopState = false;
+};
+
+/**
+ * @return boolean whether the page or module should be rendered
+ */
+Router.prototype.beforeRender = function ()
+{
+	return true;
+};
+
+/**
+ * Renders the content when no param specific render function was found.
+ */
+Router.prototype.renderContent = function (html)
+{
+	var _ = this;
+
+	_.$container.html(html);
+	_.resetScrollPosition();
 };
 
 /**
  * Triggers after render.
  */
-Router.prototype.afterRender=function()
+Router.prototype.afterRender = function ()
 {
 };
 
-Router.prototype.loadAnalytics=function(id)
+Router.prototype.resetScrollPosition = function ()
+{
+	var _ = this;
+
+	if (_.isPopState && _.positions[_.href]) {
+		window.scrollTo(_.positions[_.href].x, _.positions[_.href].y);
+	} else {
+		window.scrollTo(0, 0);
+	}
+};
+
+Router.prototype.getRequest = function ()
+{
+	var _ = this;
+
+	_.href = _.sanitizeUrl(window.location.href);
+	_.params = window.location.pathname.replace(/^\//, '').split(/[/?#]/);
+};
+
+Router.prototype.getHost = function ()
+{
+	return window.location.href.match(/^.+?\/\/+[^/]+/)[0];
+};
+
+/**
+ * Sanitizes url.
+ */
+Router.prototype.sanitizeUrl = function (url)
+{
+	return url.replace(/\/$/, '');
+};
+
+Router.prototype.loadAnalytics = function (id)
 {
 	// Disable for Google Page Speed Insights.
-	if(id && navigator.userAgent.indexOf('Speed Insights')=== -1)
-	{
-		var _=this;
+	if (id && navigator.userAgent.indexOf('Speed Insights') === -1) {
+		var _ = this;
 
-		$.getScript('https://www.googletagmanager.com/gtag/js?id='+id, function()
+		$.getScript('https://www.googletagmanager.com/gtag/js?id=' + id, function ()
 		{
-			window.dataLayer=window.dataLayer || [];
+			window.dataLayer = window.dataLayer || [];
 
 			dataLayer.push(['js', new Date()]);
 			dataLayer.push(['config', id, _.trackingConfig]);
 
-			_.trackingId=id;
-			_.analyticsLoaded=true;
+			_.trackingId = id;
+			_.analyticsLoaded = true;
 		});
 	}
 };
 
 // noinspection JSUnusedGlobalSymbols
-Router.prototype.updateAnalytics=function(path)
+Router.prototype.updateAnalytics = function ()
 {
-	var _=this;
+	var _ = this;
 
-	if(_.analyticsLoaded)
-	{
-		window.dataLayer.push({event:'pageview', url:path});
+	if (_.analyticsLoaded) {
+		window.dataLayer.push({event: 'pageview', url: _.href});
 	}
 };
 
 /**
  * Replaces cached route with AJAX post request.
  */
-Router.prototype.post=function(url, data)
+Router.prototype.post = function (url, data)
 {
-	var _=this;
+	var _ = this;
+	url = _.sanitizeUrl(url);
 
-	history.pushState(null, document.title, _.sanitizeUrl(url));
-	_.load(true, {method:'post', data:data});
+	history[url !== _.href ? 'pushState' : 'replaceState'](null, document.title, _.sanitizeUrl(url));
+	_.load({method: 'post', data: data});
 };
 
 /**
  * Scrolls to target.
  */
-Router.prototype.scrollTo=function(target, offset, speed)
+Router.prototype.scrollTo = function (target, offset, speed)
 {
-	var $target=$(target);
+	var $target = $(target);
 
-	if($target.length)
-	{
-		// noinspection JSCheckFunctionSignatures
-		$('html,body').animate({scrollTop:$target.offset().top+(offset || 0)}, speed || 300);
+	if ($target.length) {
+		$('html,body').animate({scrollTop: $target.offset().top + (offset || 0)}, speed || 300);
 	}
 };
 
 /**
  * Inits cookie consent.
  */
-Router.prototype.cookieConsent=function()
+Router.prototype.cookieConsent = function ()
 {
-	var _=this;
+	var _ = this;
 
-	if(_.$cookieContainer && _.$cookieContainer.length)
-	{
-		if(!_.checkConsentCookie())
-		{
-			_.$cookieAccept.one('click', function()
+	if (_.$cookieContainer && _.$cookieContainer.length) {
+		if (!_.checkConsentCookie()) {
+			_.$cookieAccept.one('click', function ()
 			{
-				_.$cookieContainer.slideDown('fast', function()
+				_.$cookieContainer.slideDown('fast', function ()
 				{
 					_.$cookieContainer.removeClass('active');
 				});
@@ -286,16 +334,14 @@ Router.prototype.cookieConsent=function()
 /**
  * Checks cookie consent cookie.
  */
-Router.prototype.checkConsentCookie=function()
+Router.prototype.checkConsentCookie = function ()
 {
-	var _=this,
-		cookies=document.cookie ? document.cookie.split('; ') : [],
-		i=0;
+	var _ = this,
+		cookies = document.cookie ? document.cookie.split('; ') : [],
+		i = 0;
 
-	for(; i<cookies.length; i++)
-	{
-		if(cookies[i].split('=')[0]===_.cookieName)
-		{
+	for (; i < cookies.length; i++) {
+		if (cookies[i].split('=')[0] === _.cookieName) {
 			return true;
 		}
 	}
@@ -306,19 +352,11 @@ Router.prototype.checkConsentCookie=function()
 /**
  * Set cookie.
  */
-Router.prototype.setConsentCookie=function()
+Router.prototype.setConsentCookie = function ()
 {
-	var _=this,
-		date=new Date();
+	var _ = this,
+		date = new Date();
 
-	date.setFullYear(date.getFullYear()+1);
-	document.cookie=_.cookieName+"=1; expires="+date.toUTCString()+"; path=/";
-};
-
-/**
- * Sanitizes url.
- */
-Router.prototype.sanitizeUrl=function(url)
-{
-	return url.replace(/\/$/, '');
+	date.setFullYear(date.getFullYear() + 1);
+	document.cookie = _.cookieName + "=1; expires=" + date.toUTCString() + "; path=/";
 };
