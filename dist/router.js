@@ -68,7 +68,7 @@ Router.prototype.init = function ()
 			return;
 		}
 
-		if (t.href !== loc.href) {
+		if (t.href !== loc.href || _.noCacheClass) {
 			hist.pushState(null, t.title || doc.title, _.sanitizeUrl(t.href));
 			_.load(t.classList.contains(_.noCacheClass) ? {cache: false} : null);
 		}
