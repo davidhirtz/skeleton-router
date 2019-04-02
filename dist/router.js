@@ -10,8 +10,6 @@ var Router = (function () {
 
         _.onUnload = _.deconstruct = _.referrer = _.trackingId = null;
 
-        _.trackingConfig = {};
-
         _.loadingClass = 'loading';
         _.noXhrClass = 'no-xhr';
         _.noCacheClass = 'no-cache';
@@ -245,8 +243,9 @@ Router.prototype.loadAnalytics = function (id) {
             }
 
             _.gtag('js', new Date());
-            _.gtag('config', id, _.trackingConfig);
             _.trackingId = id;
+
+            _.updateAnalytics();
         });
     }
 };
@@ -256,7 +255,10 @@ Router.prototype.updateAnalytics = function () {
     var _ = this;
 
     if (_.gtag) {
-        _.gtag(event: 'pageview', url: _.href);
+        _.gtag('config', _.trackingId, {
+            page_title : document.title,
+            page_path: window.location.pathname
+        });
     }
 };
 
