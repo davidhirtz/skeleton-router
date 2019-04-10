@@ -26,7 +26,6 @@ var Router = (function () {
         _.gtag = _.isPopState = false;
 
         _.init();
-        _.getRequest();
 
         _.loadAnalytics(_.trackingId);
         _.cookieConsent();
@@ -69,6 +68,7 @@ Router.prototype.init = function () {
         e.preventDefault();
     });
 
+    _.getRequest();
     _.afterInit();
 };
 
