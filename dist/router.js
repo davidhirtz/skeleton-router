@@ -60,9 +60,9 @@ Router.prototype.init = function () {
             return;
         }
 
-        if (t.href !== loc.href || _.noCacheClass) {
+        if (t.href !== loc.href) {
             hist.pushState(null, t.title || doc.title, _.sanitizeUrl(t.href));
-            _.load(t.classList.contains(_.noCacheClass) ? {cache: false} : null);
+            _.load((_.noCacheClass && t.classList.contains(_.noCacheClass)) ? {cache: false} : null);
         }
 
         e.preventDefault();
@@ -229,7 +229,7 @@ Router.prototype.getHost = function () {
  * Sanitizes url.
  */
 Router.prototype.sanitizeUrl = function (url) {
-    return url.replace(/\/$/, '');
+    return url.replace(/\/$/, '').split('#')[0];
 };
 
 Router.prototype.loadAnalytics = function (id) {
