@@ -166,7 +166,9 @@ Router.prototype.afterLoad = function () {
  */
 Router.prototype.render = function () {
     var _ = this,
-        func = (_.params[0] || _.defaultRoute);
+        func = (_.params[0] || _.defaultRoute).replace(/-([a-z])/g, function (g) {
+            return g[1].toUpperCase();
+        });
 
     if (_.beforeRender()) {
         func = 'render' + func[0].toUpperCase() + func.slice(1);
@@ -240,7 +242,7 @@ Router.prototype.loadAnalytics = function (id) {
 
             _.gtag = function () {
                 dataLayer.push(arguments);
-            }
+            };
 
             _.gtag('js', new Date());
             _.trackingId = id;
@@ -256,7 +258,7 @@ Router.prototype.updateAnalytics = function () {
 
     if (_.gtag) {
         _.gtag('config', _.trackingId, {
-            page_title : document.title,
+            page_title: document.title,
             page_path: window.location.pathname
         });
     }
