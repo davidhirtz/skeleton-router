@@ -61,7 +61,7 @@ Router.prototype.init = function () {
         }
 
         if (t.href !== loc.href) {
-            hist.pushState(null, t.title || doc.title, _.sanitizeUrl(t.href));
+            hist.pushState(null, t.title || doc.title, t.href);
             _.load((_.noCacheClass && t.classList.contains(_.noCacheClass)) ? {cache: false} : null);
         }
 
@@ -217,7 +217,7 @@ Router.prototype.resetScrollPosition = function () {
 Router.prototype.getRequest = function () {
     var _ = this;
 
-    _.href = _.sanitizeUrl(window.location.href);
+    _.href = _.sanitizeUrl(window.location.href).split('#')[0];
     _.params = window.location.pathname.replace(/^\//, '').split(/[/?#]/);
 };
 
@@ -229,7 +229,7 @@ Router.prototype.getHost = function () {
  * Sanitizes url.
  */
 Router.prototype.sanitizeUrl = function (url) {
-    return url.replace(/\/$/, '').split('#')[0];
+    return url.replace(/\/$/, '');
 };
 
 Router.prototype.loadAnalytics = function (id) {
