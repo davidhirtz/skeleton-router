@@ -240,7 +240,7 @@ Router.prototype.getRequest = function ()
 {
     var _ = this;
 
-    _.href = _.sanitizeUrl(window.location.href);
+    _.href = _.sanitizeUrl(window.location.href).split('#')[0];
     _.params = window.location.pathname.replace(/^\//, '').split(/[/?#]/);
 };
 
