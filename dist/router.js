@@ -1,7 +1,5 @@
-var Router = (function ()
-{
-    return function (o)
-    {
+var Router = (function () {
+    return function (o) {
         var _ = this;
 
         _.$container = $('main');
@@ -41,24 +39,23 @@ var Router = (function ()
 /**
  * Inits ajax routing events.
  */
-Router.prototype.init = function ()
-{
+Router.prototype.init = function () {
     var _ = this,
         win = window,
-        doc = document,
-        hist = history,
-        loc = hist.location || win.location;
+        loc = history.location || win.location;
 
-    $(win).on('popstate', function (e)
-    {
+    // History event.
+    $(win).on('popstate', function (e) {
         _.isPopState = true;
         _.load();
+
+        console.log('test');
 
         e.preventDefault();
     });
 
-    $(doc).on('click', 'a', function (e)
-    {
+    // Click event.
+    $(document).on('click', 'a', function (e) {
         var t = this;
 
         _.onClick(e);
@@ -68,7 +65,7 @@ Router.prototype.init = function ()
         }
 
         if (t.href !== loc.href || _.noCacheClass) {
-            hist.pushState(null, t.title || doc.title, _.sanitizeUrl(t.href));
+            _.pushState(_.sanitizeUrl(t.href), t.title);
             _.load(t.classList.contains(_.noCacheClass) ? {cache: false} : null);
         }
 
@@ -82,66 +79,58 @@ Router.prototype.init = function ()
 /**
  * Global link click event.
  */
-Router.prototype.onClick = function ()
-{
+Router.prototype.onClick = function () {
 };
 
 /**
  * Triggers after init before first render.
  */
-Router.prototype.afterInit = function ()
-{
+Router.prototype.afterInit = function () {
 };
 
 /**
- * Loads page via ajax or from cache.
+ * Loads current window.location via AJAX.
+ * If options are not set the method tries to use a previously cached request.
  */
-Router.prototype.load = function (options)
-{
+Router.prototype.load = function (options) {
     var _ = this,
-        redirect = null,
-        request = null;
+        redirect,
+        xhrRequest;
 
     _.positions[_.referrer] = {x: window.pageXOffset, y: window.pageYOffset};
     _.getRequest();
 
     if (_.beforeLoad()) {
-
         if (!_.cache[_.href] || options) {
-            request = $.ajax($.extend({url: _.href, headers: _.headers}, options || {}))
-                .done(function (body)
-                {
+            xhrRequest = $.ajax($.extend({url: _.href, headers: _.headers}, options || {}))
+                .done(function (body) {
                     _.cache[_.href] = body;
                 })
-                .fail(function (jqxhr)
-                {
+                .fail(function (jqxhr) {
                     redirect = jqxhr.getResponseHeader('X-Redirect');
                 });
         }
 
-        // Wait till deconstruct (if needed) and request are done.
-        $.when.apply($, [_.deconstruct, request].filter(function (v)
-        {
+        // Wait till deconstruct (if needed) and xhrRequest are done.
+        $.when.apply($, [_.deconstruct, xhrRequest].filter(function (v) {
             return v;
-        }))
-            .always(function ()
-            {
-                _.afterLoad();
-                _.updateAnalytics();
 
-                if (redirect) {
+        })).always(function () {
+            _.afterLoad();
+            _.updateAnalytics();
 
-                    if (redirect.indexOf(_.getHost()) === -1) {
-                        window.location.href = redirect;
-                    }
-
-                    history.pushState(null, document.title, _.sanitizeUrl(redirect));
-                    _.load({cache: false});
-                    return;
+            if (redirect) {
+                if (redirect.indexOf(_.getHost()) === -1) {
+                    window.location.href = redirect;
                 }
 
-                _.render();
-            });
+                _.pushState(_.sanitizeUrl(redirect));
+                _.load({cache: false});
+                return;
+            }
+
+            _.render();
+        });
     }
 };
 
@@ -151,8 +140,7 @@ Router.prototype.load = function (options)
  *
  * @return boolean whether load request should be executed.
  */
-Router.prototype.beforeLoad = function ()
-{
+Router.prototype.beforeLoad = function () {
     var _ = this;
 
     _.$body.addClass(_.loadingClass).trigger('unload');
@@ -169,8 +157,7 @@ Router.prototype.beforeLoad = function ()
  * Is called before a ajax request is rendered. Default implementation removes loader elements
  * set in beforeLoad(). This can be overwritten if onUnload is not used.
  */
-Router.prototype.afterLoad = function ()
-{
+Router.prototype.afterLoad = function () {
     var _ = this;
 
     _.$body.removeClass(_.loadingClass);
@@ -178,20 +165,18 @@ Router.prototype.afterLoad = function ()
 };
 
 /**
- * Renders page by first url parameter.
+ * Renders page by first url parameter. This method looks for a method named "render{Param}" in camelCase
+ * and calls renderContent a named method was found.
  */
-Router.prototype.render = function ()
-{
+Router.prototype.render = function () {
     var _ = this,
-        func = (_.params[0] || _.defaultRoute).replace(/-([a-z])/g, function (g)
-        {
+        func = (_.params[0] || _.defaultRoute).replace(/-([a-z])/g, function (g) {
             return g[1].toUpperCase();
         });
 
     if (_.beforeRender()) {
         func = 'render' + func[0].toUpperCase() + func.slice(1);
         _[(typeof _[func] === 'function' ? func : 'renderContent')](_.cache[_.href]);
-
         _.afterRender();
     }
 
@@ -202,16 +187,14 @@ Router.prototype.render = function ()
 /**
  * @return boolean whether the page or module should be rendered
  */
-Router.prototype.beforeRender = function ()
-{
+Router.prototype.beforeRender = function () {
     return true;
 };
 
 /**
  * Renders the content when no param specific render function was found.
  */
-Router.prototype.renderContent = function (html)
-{
+Router.prototype.renderContent = function (html) {
     var _ = this;
 
     _.$container.html(html);
@@ -221,53 +204,96 @@ Router.prototype.renderContent = function (html)
 /**
  * Triggers after render.
  */
-Router.prototype.afterRender = function ()
-{
+Router.prototype.afterRender = function () {
 };
 
-Router.prototype.resetScrollPosition = function ()
-{
-    var _ = this;
-
-    if (_.isPopState && _.positions[_.href]) {
-        window.scrollTo(_.positions[_.href].x, _.positions[_.href].y);
-    } else {
-        window.scrollTo(0, 0);
-    }
-};
-
-Router.prototype.getRequest = function ()
-{
+/**
+ * Sets request parameters from window.location.
+ */
+Router.prototype.getRequest = function () {
     var _ = this;
 
     _.href = _.sanitizeUrl(window.location.href).split('#')[0];
     _.params = window.location.pathname.replace(/^\//, '').split(/[/?#]/);
 };
 
-Router.prototype.getHost = function ()
-{
+/**
+ * @return {string}
+ */
+Router.prototype.getHost = function () {
     return window.location.href.match(/^.+?\/\/+[^/]+/)[0];
 };
 
 /**
  * Sanitizes url.
+ * @return {string}
  */
-Router.prototype.sanitizeUrl = function (url)
-{
+Router.prototype.sanitizeUrl = function (url) {
     return url.replace(/\/$/, '');
 };
 
-Router.prototype.loadAnalytics = function ()
-{
+/**
+ * Replaces cached route with AJAX post request.
+ */
+Router.prototype.post = function (url, data) {
+    var _ = this;
+
+    url = _.sanitizeUrl(url);
+
+    if (url !== _.href) {
+        _.pushState(url);
+    }
+
+    _.load({method: 'post', data: data});
+};
+
+/**
+ * Shorthand method for history.pushState.
+ */
+Router.prototype.pushState = function (url, title, data) {
+    history.pushState(data, title || document.title, url);
+};
+
+/**
+ * Shorthand method for history.replaceState.
+ */
+Router.prototype.replaceState = function (url, title, data) {
+    history.replaceState(data, title || document.title, url);
+};
+
+/**
+ * Scrolls back to previously saved location to imitate the default
+ * browser behavior on back/forward navigation.
+ */
+Router.prototype.resetScrollPosition = function () {
+    var _ = this,
+        hasPrevPos = _.isPopState && _.positions[_.href];
+
+    window.scrollTo(hasPrevPos ? _.positions[_.href].x : 0, hasPrevPos ? _.positions[_.href].y : 0);
+};
+
+/**
+ * Scrolls to target element with animation.
+ */
+Router.prototype.scrollTo = function (target, offset, speed) {
+    var $target = $(target);
+
+    if ($target.length) {
+        $('html,body').animate({scrollTop: $target.offset().top + (offset || 0)}, speed || 300);
+    }
+};
+
+/**
+ * Loads analytics.
+ */
+Router.prototype.loadAnalytics = function () {
     var _ = this;
 
     if (_.trackingId && !_.gtag && navigator.userAgent.indexOf('Speed Insights') === -1) {
-        $.getScript('https://www.googletagmanager.com/gtag/js?id=' + _.trackingId, function ()
-        {
+        $.getScript('https://www.googletagmanager.com/gtag/js?id=' + _.trackingId, function () {
             window.dataLayer = window.dataLayer || [];
 
-            _.gtag = function ()
-            {
+            _.gtag = function () {
                 dataLayer.push(arguments);
             };
 
@@ -277,9 +303,10 @@ Router.prototype.loadAnalytics = function ()
     }
 };
 
-// noinspection JSUnusedGlobalSymbols
-Router.prototype.updateAnalytics = function ()
-{
+/**
+ * Updates analytics page view.
+ */
+Router.prototype.updateAnalytics = function () {
     var _ = this;
 
     if (_.gtag) {
@@ -290,42 +317,16 @@ Router.prototype.updateAnalytics = function ()
     }
 };
 
-/**
- * Replaces cached route with AJAX post request.
- */
-Router.prototype.post = function (url, data)
-{
-    var _ = this;
-    url = _.sanitizeUrl(url);
-
-    history[url !== _.href ? 'pushState' : 'replaceState'](null, document.title, _.sanitizeUrl(url));
-    _.load({method: 'post', data: data});
-};
-
-/**
- * Scrolls to target.
- */
-Router.prototype.scrollTo = function (target, offset, speed)
-{
-    var $target = $(target);
-
-    if ($target.length) {
-        $('html,body').animate({scrollTop: $target.offset().top + (offset || 0)}, speed || 300);
-    }
-};
 
 /**
  * Inits cookie consent.
  */
-Router.prototype.cookieConsent = function ()
-{
+Router.prototype.cookieConsent = function () {
     var _ = this;
 
     if (!_.checkConsentCookie()) {
-        _.$cookieAccept.one('click', function ()
-        {
-            _.$cookieContainer.slideDown('fast', function ()
-            {
+        _.$cookieAccept.one('click', function () {
+            _.$cookieContainer.slideDown('fast', function () {
                 _.$cookieContainer.removeClass('active');
                 _.loadAnalytics();
             });
@@ -340,8 +341,7 @@ Router.prototype.cookieConsent = function ()
 /**
  * Checks cookie consent cookie.
  */
-Router.prototype.checkConsentCookie = function ()
-{
+Router.prototype.checkConsentCookie = function () {
     var _ = this,
         cookies = document.cookie ? document.cookie.split('; ') : [],
         i = 0;
@@ -360,8 +360,7 @@ Router.prototype.checkConsentCookie = function ()
 /**
  * Set cookie.
  */
-Router.prototype.setConsentCookie = function ()
-{
+Router.prototype.setConsentCookie = function () {
     var _ = this,
         date = new Date();
 
