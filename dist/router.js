@@ -49,8 +49,6 @@ Router.prototype.init = function () {
         _.isPopState = true;
         _.load();
 
-        console.log('test');
-
         e.preventDefault();
     });
 
