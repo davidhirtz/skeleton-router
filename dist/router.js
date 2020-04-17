@@ -22,6 +22,7 @@ var Router = (function () {
 
         _.cache = {};
         _.positions = {};
+        _.redirect = null;
 
         _.gtag = _.isPopState = false;
 
@@ -92,7 +93,6 @@ Router.prototype.afterInit = function () {
  */
 Router.prototype.load = function (options) {
     var _ = this,
-        redirect,
         xhrRequest;
 
     _.positions[_.referrer] = {x: window.pageXOffset, y: window.pageYOffset};
@@ -102,10 +102,11 @@ Router.prototype.load = function (options) {
         if (!_.cache[_.href] || options) {
             xhrRequest = $.ajax($.extend({url: _.href, headers: _.headers}, options || {}))
                 .done(function (body) {
-                    _.cache[_.href] = body;
+                    _.setCache(body);
                 })
                 .fail(function (jqxhr) {
-                    redirect = jqxhr.getResponseHeader('X-Redirect');
+                    _.redirect = jqxhr.getResponseHeader('X-Redirect');
+                    _.onRequestFail(jqxhr);
                 });
         }
 
@@ -117,12 +118,13 @@ Router.prototype.load = function (options) {
             _.afterLoad();
             _.updateAnalytics();
 
-            if (redirect) {
-                if (redirect.indexOf(_.getHost()) === -1) {
-                    window.location.href = redirect;
+            if (_.redirect) {
+                if (_.redirect.indexOf(_.getHost()) === -1) {
+                    window.location.href = _.redirect;
                 }
 
-                _.pushState(_.sanitizeUrl(redirect));
+                _.pushState(_.sanitizeUrl(_.redirect));
+                _.redirect = null;
                 _.load({cache: false});
                 return;
             }
@@ -131,6 +133,17 @@ Router.prototype.load = function (options) {
         });
     }
 };
+
+/**
+ * Default implementation pushes content to cache stack. Override this for a more complex
+ * caching solution.
+ *
+ * @param body
+ */
+Router.prototype.setCache = function (body) {
+    var _ = this;
+    _.cache[_.href] = body;
+}
 
 /**
  * Default implementation checks for onUnload deferred object for loading functionality.
@@ -150,6 +163,20 @@ Router.prototype.beforeLoad = function () {
 
     return true;
 };
+
+/**
+ * Default implementation pushes response to cache to display 404 errors etc. Override this
+ * method to handle request errors in current.
+ *
+ * @param jqxhr
+ */
+Router.prototype.onRequestFail = function (jqxhr) {
+    var _ = this;
+
+    if (!_.redirect && jqxhr.responseText) {
+        _.setCache(jqxhr.responseText);
+    }
+}
 
 /**
  * Is called before a ajax request is rendered. Default implementation removes loader elements
@@ -324,11 +351,8 @@ Router.prototype.cookieConsent = function () {
 
     if (!_.checkConsentCookie()) {
         _.$cookieAccept.one('click', function () {
-            _.$cookieContainer.slideDown('fast', function () {
-                _.$cookieContainer.removeClass('active');
-                _.loadAnalytics();
-            });
-
+            _.$cookieContainer.removeClass('active');
+            _.loadAnalytics();
             _.setConsentCookie();
         });
 
