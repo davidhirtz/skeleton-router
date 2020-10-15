@@ -387,5 +387,5 @@ Router.prototype.setConsentCookie = function () {
         date = new Date();
 
     date.setFullYear(date.getFullYear() + 1);
-    document.cookie = _.cookieName + "=1; expires=" + date.toUTCString() + "; path=/";
+    document.cookie = _.cookieName + "=1; expires=" + date.toUTCString() + "; path=/; sameSite=Lax";
 };
