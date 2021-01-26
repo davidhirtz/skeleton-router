@@ -315,7 +315,7 @@ Router.prototype.loadAnalytics = function () {
     var _ = this;
 
     if (_.trackingId && !_.gtag && navigator.userAgent.indexOf('Speed Insights') === -1) {
-        $.getScript('https://www.googletagmanager.com/gtag/js?id=' + _.trackingId, function () {
+        _.getCachedScript('https://www.googletagmanager.com/gtag/js?id=' + _.trackingId).done(function () {
             window.dataLayer = window.dataLayer || [];
 
             _.gtag = function () {
@@ -362,6 +362,7 @@ Router.prototype.cookieConsent = function () {
 
 /**
  * Checks cookie consent cookie.
+ * @returns {boolean}
  */
 Router.prototype.checkConsentCookie = function () {
     var _ = this,
@@ -389,3 +390,16 @@ Router.prototype.setConsentCookie = function () {
     date.setFullYear(date.getFullYear() + 1);
     document.cookie = _.cookieName + "=1; expires=" + date.toUTCString() + "; path=/; sameSite=Lax";
 };
+
+/**
+ * Replacement for jQuery's `getScript` which allows browser to cache script.
+ * @param {string} url
+ * @return {jQuery}
+ */
+Router.prototype.getCachedScript = function (url) {
+    return $.ajax({
+        cache: true,
+        dataType: 'script',
+        url: url
+    });
+}
