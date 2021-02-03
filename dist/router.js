@@ -315,7 +315,7 @@ Router.prototype.loadAnalytics = function () {
     var _ = this;
 
     if (_.trackingId && !_.gtag && navigator.userAgent.indexOf('Speed Insights') === -1) {
-        _.getCachedScript('https://www.googletagmanager.com/gtag/js?id=' + _.trackingId).done(function () {
+        _.getCachedScript('https://www.googletagmanager.com/gtag/js?id=' + (Array.isArray(_.trackingId) ? _.trackingId[0] : _.trackingId)).done(function () {
             window.dataLayer = window.dataLayer || [];
 
             _.gtag = function () {
@@ -335,13 +335,14 @@ Router.prototype.updateAnalytics = function () {
     var _ = this;
 
     if (_.gtag) {
-        _.gtag('config', _.trackingId, {
-            page_title: document.title,
-            page_path: window.location.pathname
+        $.each(!Array.isArray(_.trackingId) ? [_.trackingId] : _.trackingId, function (i, trackingId) {
+            _.gtag('config', trackingId, {
+                page_title: document.title,
+                page_path: window.location.pathname
+            });
         });
     }
 };
-
 
 /**
  * Inits cookie consent.
