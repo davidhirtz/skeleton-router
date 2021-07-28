@@ -338,6 +338,7 @@ Router.prototype.updateAnalytics = function () {
     if (_.gtag) {
         $.each(!Array.isArray(_.trackingId) ? [_.trackingId] : _.trackingId, function (i, trackingId) {
             _.gtag('event', 'page_view', {
+                page_title: document.title,
                 page_location: location.href,
                 page_path: location.pathname,
                 send_to: trackingId
