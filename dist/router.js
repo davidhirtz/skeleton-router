@@ -116,7 +116,6 @@ Router.prototype.load = function (options) {
 
         })).always(function () {
             _.afterLoad();
-            _.updateAnalytics();
 
             if (_.redirect) {
                 if (_.redirect.indexOf(_.getHost()) === -1) {
@@ -130,6 +129,7 @@ Router.prototype.load = function (options) {
             }
 
             _.render();
+            _.updateAnalytics();
         });
     }
 };
@@ -332,18 +332,19 @@ Router.prototype.loadAnalytics = function () {
  * Updates analytics page view.
  */
 Router.prototype.updateAnalytics = function () {
-    var _ = this;
+    var _ = this,
+        location = window.location;
 
     if (_.gtag) {
         $.each(!Array.isArray(_.trackingId) ? [_.trackingId] : _.trackingId, function (i, trackingId) {
-            _.gtag('config', trackingId, {
-                page_title: document.title,
-                page_path: window.location.pathname
+            _.gtag('event', 'page_view', {
+                page_location: location.href,
+                page_path: location.pathname,
+                send_to: trackingId
             });
         });
     }
 };
-
 /**
  * Inits cookie consent.
  */
