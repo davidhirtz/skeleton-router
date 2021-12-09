@@ -1,7 +1,7 @@
 {
   "name": "skeleton-router",
-  "version": "2.0.0",
-  "description": "A simple jQuery-based client-side router",
+  "version": "2.0.3",
+  "description": "A simple ES6 router",
   "main": "dist/router.js",
   "repository": {
     "type": "git",

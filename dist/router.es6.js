@@ -1,25 +1,4 @@
 class Router {
-    a = 'active';
-
-    headers = {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-Ajax-Request': 'route',
-    };
-
-    defaultRoute = 'home';
-    cache = {};
-    positions = {};
-
-    isPopState = false;
-
-    referrer;
-    trackingIds;
-
-    noXhrClass = 'no-xhr';
-    noCacheClass = 'no-cache';
-
-    consentCookie = '_cc';
-
     constructor(config) {
         const _ = this;
 
@@ -27,6 +6,26 @@ class Router {
         _.d = document;
         _.main = _.d.getElementsByTagName('main')[0];
         _.b = _.d.getElementsByTagName('body')[0];
+
+        _.a = 'active';
+
+        _.headers = {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-Ajax-Request': 'route',
+        };
+
+        _.defaultRoute = 'home';
+        _.cache = {};
+        _.positions = {};
+
+        _.isPopState = false;
+
+        _.referrer = null;
+        _.trackingIds = [];
+
+        _.noXhrClass = 'no-xhr';
+        _.noCacheClass = 'no-cache';
+        _.consentCookie = '_cc';
 
         if (config) {
             Object.keys(config).forEach(key => {
@@ -76,7 +75,7 @@ class Router {
             e.metaKey ||
             e.shiftKey ||
             !url ||
-            target.download ||
+            target.hasAttribute('download') ||
             target.classList.contains(_.noXhrClass) ||
             target.target && target.target !== '_self' ||
             url.host !== _.l.host) {
@@ -235,7 +234,7 @@ class Router {
         const _ = this;
 
         _.ccAccept.forEach(function (element) {
-            element.addEventListener('click', function () {
+            element.addEventListener('click', () => {
                 _.loadAnalytics();
                 _.setConsentCookie();
 
@@ -312,7 +311,6 @@ class Router {
      * @returns {number|*}
      */
     scrollTo(destination, duration = 200, easing, callback) {
-
         const easeInQuad = (t) => {
             return t * t;
         }
