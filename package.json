@@ -1,6 +1,6 @@
 {
   "name": "skeleton-router",
-  "version": "2.0.3",
+  "version": "2.0.7",
   "description": "A simple ES6 router",
   "main": "dist/router.js",
   "repository": {

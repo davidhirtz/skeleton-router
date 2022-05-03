@@ -81,15 +81,20 @@ class Router {
             url.host !== _.l.host) {
             return;
         }
-
-        if (url.pathname !== loc.pathname) {
+        
+        if (url.pathname !== loc.pathname || url.search !== loc.search) {
             hist.pushState(null, target.title || document.title, _.sanitizeUrl(target.href));
             _.load(target.classList.contains(_.noCacheClass) ? {cache: false} : null);
         } else if (url.hash) {
-            _.scrollTo(_.d.getElementById(url.hash.substr(1)));
+            _.scrollTo(_.d.getElementById(url.hash.substring(1)));
+        } else {
+            _.onUnhandledClick(e, target);
         }
 
         e.preventDefault();
+    }
+
+    onUnhandledClick(e, target) {
     }
 
     onPopState(e) {
