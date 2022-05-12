@@ -222,6 +222,11 @@ Router.prototype.beforeRender = function () {
 Router.prototype.renderContent = function (html) {
     var _ = this;
 
+    // Fixes iOS Safari bug which loads full page on startup, check for "<!DOCTYPE html>" and reload full page if needed
+    if (html && html.trim().startsWith('<!DOC')) {
+        location.reload();
+    }
+
     _.$container.html(html);
     _.resetScrollPosition();
 };
