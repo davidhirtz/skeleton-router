@@ -21,7 +21,7 @@ export default class Router {
             a: 'active',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-Ajax-Request': 'true'
+                'X-Ajax-Request': 'route',
             },
             cache: {},
             positions: {},
@@ -112,7 +112,7 @@ export default class Router {
                 const request = new XMLHttpRequest();
                 request.open('GET', router.href, true);
 
-                Object.keys(router.headers).forEach(key => {
+                Object.keys(router.headers).forEach((key) => {
                     request.setRequestHeader(key, router.headers[key]);
                 });
 
@@ -169,10 +169,10 @@ export default class Router {
         // reload full page if needed
         if (html && html.trim().startsWith('<!DOC')) {
             location.reload();
+        } else {
+            router.setInnerHTML(router.main, html);
+            router.resetScrollPosition();
         }
-
-        router.setInnerHTML(router.main, html);
-        router.resetScrollPosition();
     }
 
     afterRender(): void {
