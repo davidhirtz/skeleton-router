@@ -22,10 +22,6 @@ export default class Router {
                 target = target.parentElement;
             }
         }, false);
-        router.run();
-    }
-    run() {
-        this.afterRender();
     }
     onClick(e, target) {
         const router = this, url = target.href ? new URL(target.href) : false;

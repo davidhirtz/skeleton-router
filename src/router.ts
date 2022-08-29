@@ -1,6 +1,3 @@
-/**
- * Default
- */
 export default class Router {
     l: Location;
     main: HTMLElement;
@@ -15,7 +12,7 @@ export default class Router {
     href: string;
     params: string[];
 
-    constructor(config) {
+    constructor(config?) {
         const router = this;
 
         Object.assign(router, {
@@ -57,12 +54,6 @@ export default class Router {
                 target = target.parentElement;
             }
         }, false);
-
-        router.run();
-    }
-
-    run() {
-        this.afterRender();
     }
 
     onClick(e: MouseEvent, target: HTMLLinkElement) {

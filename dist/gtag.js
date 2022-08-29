@@ -1,17 +1,18 @@
 import { categories } from './consent.js';
 import { loadScript } from './utils.js';
+/**
+ * Google Analytics module.
+ */
 export default class Gtag {
-    constructor(config) {
+    constructor(id) {
         const module = this;
-        if (typeof config === 'string') {
-            config = { id: config };
-        }
-        Object.assign(module, Object.assign({ categories: [categories.ANALYTICS], id: [] }, config));
-        if (!Array.isArray(module.id)) {
-            module.id = [module.id];
-        }
-        module.gtag = null;
-        module._isActive = false;
+        Object.assign(module, {
+            categories: [categories.ANALYTICS],
+            id: [],
+            gtag: null,
+            _isActive: false,
+        });
+        module.id = !Array.isArray(module.id) ? [id] : id;
     }
     enable() {
         this._isActive = true;
@@ -42,7 +43,6 @@ export default class Gtag {
             module.id.forEach(function (trackingId) {
                 const location = window.location;
                 module.gtag('event', 'page_view', Object.assign({ page_title: document.title, page_location: location.href, page_path: location.pathname, send_to: trackingId }, options));
-                console.log(Object.assign({ page_title: document.title, page_location: location.href, page_path: location.pathname, send_to: trackingId }, options));
             });
         }
     }
