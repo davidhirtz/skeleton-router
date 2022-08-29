@@ -1,6 +1,5 @@
 import gulp from 'gulp';
 import ts from 'gulp-typescript';
-import merge from 'merge2';
 
 const tsProject = ts.createProject('tsconfig.json');
 
