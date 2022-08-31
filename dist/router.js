@@ -4,11 +4,16 @@ var Router = (function () {
 
         _.$container = $('main');
         _.$body = $('body');
+        _.a = 'active';
 
         _.headers = {'X-Ajax-Request': 'route'};
         _.defaultRoute = 'home';
 
-        _.onUnload = _.deconstruct = _.referrer = _.trackingId = null;
+        _.onUnload = null;
+        _.deconstruct = null;
+        _.referrer = null;
+        _.trackingId = null;
+        _.cookieDomain = null;
 
         _.loadingClass = 'loading';
         _.noXhrClass = 'no-xhr';
@@ -17,6 +22,7 @@ var Router = (function () {
         _.cookieName = '_cc';
         _.$cookieContainer = $('#cc');
         _.$cookieAccept = $('.cc-accept');
+        _.cookieValue = 1;
 
         $.extend(_, o);
 
@@ -28,11 +34,14 @@ var Router = (function () {
 
         _.init();
 
-        if (_.checkConsentCookie()) {
+        var consent = _.getConsentCookie();
+
+        if (consent === _.cookieValue) {
             _.loadAnalytics();
+        } else if (consent === false) {
+            _.initCookieConsent();
         }
 
-        _.cookieConsent();
         _.render();
     };
 }());
@@ -95,7 +104,7 @@ Router.prototype.load = function (options) {
     var _ = this,
         xhrRequest;
 
-    _.positions[_.referrer] = {x: window.pageXOffset, y: window.pageYOffset};
+    _.positions[_.referrer] = {x: window.screenX, y: window.scrollY};
     _.getRequest();
 
     if (_.beforeLoad()) {
@@ -354,33 +363,38 @@ Router.prototype.updateAnalytics = function () {
 /**
  * Inits cookie consent.
  */
-Router.prototype.cookieConsent = function () {
+Router.prototype.initCookieConsent = function () {
     var _ = this;
 
-    if (!_.checkConsentCookie()) {
-        _.$cookieAccept.one('click', function () {
-            _.$cookieContainer.removeClass('active');
-            _.loadAnalytics();
-            _.setConsentCookie();
-        });
+    _.$cookieAccept.one('click', function () {
+        _.$cookieContainer.removeClass(_.a);
 
-        _.$cookieContainer.addClass('active');
-    }
+        var value = $(this).data('value') || _.cookieValue;
+        _.setConsentCookie(value);
+
+        if (value === _.cookieValue) {
+            _.loadAnalytics();
+        }
+    });
+
+    _.$cookieContainer.addClass(_.a);
 };
 
 /**
  * Checks cookie consent cookie.
  * @returns {boolean}
  */
-Router.prototype.checkConsentCookie = function () {
+Router.prototype.getConsentCookie = function () {
     var _ = this,
         cookies = document.cookie ? document.cookie.split('; ') : [],
         i = 0;
 
     if (_.$cookieContainer && _.$cookieContainer.length) {
         for (; i < cookies.length; i++) {
-            if (cookies[i].split('=')[0] === _.cookieName) {
-                return true;
+            var params = cookies[i].split('=');
+
+            if (params[0] === _.cookieName) {
+                return params[1];
             }
         }
     }
@@ -389,14 +403,16 @@ Router.prototype.checkConsentCookie = function () {
 };
 
 /**
- * Set cookie.
+ * Set cookie consent cookie.
+ * @param {String|int?} value
+ * @param {boolean?} remove
  */
-Router.prototype.setConsentCookie = function () {
+Router.prototype.setConsentCookie = function (value, remove) {
     var _ = this,
         date = new Date();
 
     date.setFullYear(date.getFullYear() + 1);
-    document.cookie = _.cookieName + "=1; expires=" + date.toUTCString() + "; path=/; sameSite=Lax";
+    document.cookie = _.cookieName + '=' + (value || _.cookieValue) + ';expires=' + (remove ? 'Thu, 01 Jan 1970 00:00:01 GMT' : date.toUTCString()) + (_.cookieDomain ? (';domain=' + _.cookieDomain) : '') + ';path=/; sameSite=Lax';
 };
 
 /**
