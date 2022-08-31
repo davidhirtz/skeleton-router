@@ -19,7 +19,7 @@ export default class Instagram {
         const instagram = this;
         container = container || instagram.$container;
         for (let i = 0; i < instagram.items.length; i++) {
-            if (!instagram.maxItems || i <= instagram.maxItems) {
+            if (!instagram.maxItems || i < instagram.maxItems) {
                 container.innerHTML += instagram.renderItem(instagram.items[i], i);
             }
         }
