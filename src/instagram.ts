@@ -39,12 +39,13 @@ export default class Instagram {
         request.send();
     }
 
-    render() {
+    render(container?: HTMLElement) {
         const instagram = this;
+        container = container || instagram.$container;
 
         for (let i = 0; i < instagram.items.length; i++) {
             if (!instagram.maxItems || i <= instagram.maxItems) {
-                instagram.$container.innerHTML += instagram.renderItem(instagram.items[i], i);
+                container.innerHTML += instagram.renderItem(instagram.items[i], i);
             }
         }
     }

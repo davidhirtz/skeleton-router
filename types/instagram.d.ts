@@ -15,7 +15,7 @@ export default class Instagram {
     maxItems: number | boolean;
     items: FeedItem[];
     constructor(config: InstagramConfig | string);
-    render(): void;
+    render(container?: HTMLElement): void;
     renderItem(item: FeedItem, key: any): string;
 }
 export {};
