@@ -3,7 +3,7 @@ export default class Router {
         const router = this;
         Object.assign(router, Object.assign({ l: window.location, main: document.querySelector('main'), a: 'active', headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-Ajax-Request': 'true'
+                'X-Ajax-Request': 'route',
             }, cache: {}, positions: {}, referrer: null, trackingIds: [], noXhrClass: 'no-xhr', noCacheClass: 'no-cache' }, config));
         router.init();
     }
@@ -68,7 +68,7 @@ export default class Router {
             if (disableCache || !router.cache[router.href]) {
                 const request = new XMLHttpRequest();
                 request.open('GET', router.href, true);
-                Object.keys(router.headers).forEach(key => {
+                Object.keys(router.headers).forEach((key) => {
                     request.setRequestHeader(key, router.headers[key]);
                 });
                 request.onload = function () {
@@ -119,8 +119,10 @@ export default class Router {
         if (html && html.trim().startsWith('<!DOC')) {
             location.reload();
         }
-        router.setInnerHTML(router.main, html);
-        router.resetScrollPosition();
+        else {
+            router.setInnerHTML(router.main, html);
+            router.resetScrollPosition();
+        }
     }
     afterRender() {
     }
