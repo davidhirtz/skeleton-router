@@ -25,6 +25,7 @@ export default class Router {
     }
     onClick(e, target) {
         const router = this, url = target.href ? new URL(target.href) : false;
+        // noinspection JSDeprecatedSymbols – PhpStorm is unhappy with the `target` attribute
         if (e.defaultPrevented ||
             e.ctrlKey ||
             e.metaKey ||

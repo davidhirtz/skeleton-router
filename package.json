@@ -1,6 +1,6 @@
 {
   "name": "skeleton-router",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A simple ES6 module router",
   "type": "module",
   "main": "index.js",
@@ -15,8 +15,9 @@
   },
   "homepage": "https://github.com/davidhirtz/skeleton-router#readme",
   "devDependencies": {
+    "@types/gtag.js": "^0.0.10",
     "gulp-typescript": "^6.0.0-alpha.1",
-    "typescript": "^4.8.2",
-    "@types/gtag.js": "^0.0.10"
+    "merge2": "^1.4.1",
+    "typescript": "^4.8.2"
   }
 }
