@@ -20,6 +20,7 @@ export default class Consent {
     initButtons(): void;
     initContainer(): void;
     loadModules(categories: any): void;
+    setCategories(categories: any): void;
     getCookie(): string | false;
     setCookie: (value: string, remove?: boolean) => void;
 }

@@ -22,7 +22,7 @@ export default class Consent {
         const consent = this;
 
         Object.assign(consent, {
-            buttons: document.querySelectorAll('.cc-btn'),
+            buttons: document.querySelectorAll('.cc-button'),
             categories: [categories.ANALYTICS, categories.MARKETING, categories.SOCIAL],
             container: document.getElementById('cc'),
             cookieName: '_cc',
@@ -53,11 +53,7 @@ export default class Consent {
         if (consent.buttons) {
             consent.buttons.forEach((button) => {
                 button.addEventListener('click', (e) => {
-                    const categories = button.dataset.consent || consent.defaultValue;
-                    consent.setCookie(categories);
-                    consent.loadModules(categories);
-
-                    consent.container.classList.remove('active');
+                    consent.setCategories(button.dataset.consent || consent.defaultValue);
                     e.preventDefault();
                 });
             });
@@ -81,6 +77,15 @@ export default class Consent {
                 module.load();
             }
         });
+    }
+
+    setCategories(categories) {
+        const consent = this;
+
+        consent.setCookie(categories);
+        consent.loadModules(categories);
+
+        consent.container.classList.remove('active');
     }
 
     getCookie() {

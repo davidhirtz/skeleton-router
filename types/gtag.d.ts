@@ -11,9 +11,9 @@ declare global {
 export default class Gtag implements ConsentModule {
     categories: Array<string>;
     _isActive: boolean;
-    id: Array<string>;
+    id: Array<string> | null;
     gtag: Gtag.Gtag;
-    constructor(id: any);
+    constructor(id?: any);
     enable(): void;
     disable(): void;
     isActive(): string[];

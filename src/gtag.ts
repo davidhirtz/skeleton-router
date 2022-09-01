@@ -14,20 +14,22 @@ declare global {
 export default class Gtag implements ConsentModule {
     categories: Array<string>;
     _isActive: boolean;
-    id: Array<string>;
+    id: Array<string> | null;
     gtag: Gtag.Gtag;
 
-    constructor(id: any) {
+    constructor(id?: any) {
         const module = this;
 
         Object.assign(module, {
             categories: [categories.ANALYTICS],
-            id: [],
+            id: null,
             gtag: null,
             _isActive: false,
         });
 
-        module.id = !Array.isArray(module.id) ? [id] : id;
+        if (id) {
+            module.id = !Array.isArray(module.id) ? [id] : id;
+        }
     }
 
     enable() {

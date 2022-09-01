@@ -8,11 +8,13 @@ export default class Gtag {
         const module = this;
         Object.assign(module, {
             categories: [categories.ANALYTICS],
-            id: [],
+            id: null,
             gtag: null,
             _isActive: false,
         });
-        module.id = !Array.isArray(module.id) ? [id] : id;
+        if (id) {
+            module.id = !Array.isArray(module.id) ? [id] : id;
+        }
     }
     enable() {
         this._isActive = true;
