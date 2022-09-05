@@ -6,10 +6,10 @@ export default class Instagram {
         if (typeof config === 'string') {
             config = { url: config };
         }
-        instagram.$container = config.$container || document.getElementById('instagram');
-        instagram.maxItems = config.maxItems !== undefined ? config.maxItems : 6;
-        instagram.linkCssClass = config.linkCssClass || 'instagram-link';
-        instagram.lazyload = config.lazyload || true;
+        Object.assign(instagram, Object.assign({ maxItems: 6, linkCssClass: 'instagram-link', lazyload: true }, config));
+        if (!config.$container) {
+            config.$container = document.getElementById('instagram');
+        }
         instagram.items = [];
         request.open('GET', config.url, true);
         request.onload = function () {

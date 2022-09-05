@@ -30,11 +30,16 @@ export default class Instagram {
             config = {url: config};
         }
 
-        instagram.$container = config.$container || document.getElementById('instagram');
-        instagram.maxItems = config.maxItems !== undefined ? config.maxItems : 6
+        Object.assign(instagram, {
+            maxItems: 6,
+            linkCssClass: 'instagram-link',
+            lazyload: true,
+            ...config
+        });
 
-        instagram.linkCssClass = config.linkCssClass || 'instagram-link';
-        instagram.lazyload = config.lazyload || true;
+        if (!config.$container) {
+            config.$container = document.getElementById('instagram');
+        }
 
         instagram.items = [];
 
