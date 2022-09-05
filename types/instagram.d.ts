@@ -8,6 +8,8 @@ interface FeedItem {
 interface InstagramConfig {
     url: string;
     $container?: HTMLElement;
+    lazyload?: boolean;
+    linkCssClass?: string;
     maxItems?: number | boolean;
 }
 export default class Instagram {

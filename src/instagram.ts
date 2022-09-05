@@ -9,6 +9,8 @@ interface FeedItem {
 interface InstagramConfig {
     url: string;
     $container?: HTMLElement;
+    lazyload?: boolean;
+    linkCssClass?: string;
     maxItems?: number | boolean;
 }
 
@@ -31,8 +33,8 @@ export default class Instagram {
         instagram.$container = config.$container || document.getElementById('instagram');
         instagram.maxItems = config.maxItems !== undefined ? config.maxItems : 6
 
-        instagram.linkCssClass = 'instagram-link';
-        instagram.lazyload = true;
+        instagram.linkCssClass = config.linkCssClass || 'instagram-link';
+        instagram.lazyload = config.lazyload || true;
 
         instagram.items = [];
 
