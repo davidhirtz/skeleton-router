@@ -12,10 +12,13 @@ interface InstagramConfig {
     maxItems?: number | boolean;
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default class Instagram {
     $container: HTMLElement;
     maxItems: number | boolean;
     items: FeedItem[];
+    linkCssClass: string;
+    lazyload: boolean;
 
     constructor(config: InstagramConfig | string) {
         const instagram = this;
@@ -27,6 +30,9 @@ export default class Instagram {
 
         instagram.$container = config.$container || document.getElementById('instagram');
         instagram.maxItems = config.maxItems !== undefined ? config.maxItems : 6
+
+        instagram.linkCssClass = 'instagram-link';
+        instagram.lazyload = true;
 
         instagram.items = [];
 
@@ -45,12 +51,21 @@ export default class Instagram {
 
         for (let i = 0; i < instagram.items.length; i++) {
             if (!instagram.maxItems || i < instagram.maxItems) {
-                container.innerHTML += instagram.renderItem(instagram.items[i], i);
+                container.innerHTML += instagram.renderItem(instagram.items[i], i + 1);
             }
         }
     }
 
-    renderItem(item: FeedItem, key) {
-        return `<div class="instagram-item instagram-${key}"><a href="${item.permalink}" rel="noopener" class="instagram-link" target="_blank"><img src="${item.media_url}" class="instagram-img" alt></a></div>`;
+    renderItem(item: FeedItem, position: number) {
+        const instagram = this;
+        return `<div class="instagram-item instagram-${position}"><a href="${item.permalink}" rel="noopener" class="${instagram.linkCssClass}" target="_blank">${instagram.renderMedia(item)}</a></div>`;
+    }
+
+    renderMedia(item: FeedItem) {
+        const src = this.lazyload ? 'class="lazyload" data-src' : 'src';
+
+        return item.media_type === 'VIDEO' ?
+            `<video ${src}="${item.media_url}" autoplay loop muted playsinline></video>` :
+            `<img ${src}="${item.media_url}" alt="${item.caption}">`;
     }
 }

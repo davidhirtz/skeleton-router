@@ -14,8 +14,11 @@ export default class Instagram {
     $container: HTMLElement;
     maxItems: number | boolean;
     items: FeedItem[];
+    linkCssClass: string;
+    lazyload: boolean;
     constructor(config: InstagramConfig | string);
     render(container?: HTMLElement): void;
-    renderItem(item: FeedItem, key: any): string;
+    renderItem(item: FeedItem, position: number): string;
+    renderMedia(item: FeedItem): string;
 }
 export {};
