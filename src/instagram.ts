@@ -69,10 +69,8 @@ export default class Instagram {
     }
 
     renderMedia(item: FeedItem) {
-        const src = this.lazyload ? 'class="lazyload" data-src' : 'src';
-
         return item.media_type === 'VIDEO' ?
-            `<video ${src}="${item.media_url}" autoplay loop muted playsinline></video>` :
-            `<img ${src}="${item.media_url}" alt="${item.caption}">`;
+            `<video src="${item.media_url}" ${this.lazyload ? 'class="lazyload" preload="none" data-autoplay=""' : 'autoplay'} loop muted playsinline></video>` :
+            `<img ${this.lazyload ? 'class="lazyload" data-src' : 'src'}="${item.media_url}" alt="${item.caption}">`;
     }
 }
