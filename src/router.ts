@@ -73,7 +73,7 @@ export default class Router {
             return;
         }
 
-        if (url.pathname !== window.location.pathname) {
+        if (url.pathname !== router.l.pathname || url.search !== router.l.search) {
             history.pushState(null, target.title || document.title, router.sanitizeUrl(target.href));
             router.load(target.classList.contains(router.noCacheClass));
         } else if (url.hash) {
