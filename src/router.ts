@@ -26,7 +26,6 @@ export default class Router {
             cache: {},
             positions: {},
             referrer: null,
-            trackingIds: [],
             noXhrClass: 'no-xhr',
             noCacheClass: 'no-cache',
             ...config
