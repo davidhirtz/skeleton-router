@@ -34,15 +34,15 @@ export default class Gtag {
                 window.dataLayer = window.dataLayer || [];
                 module.gtag = () => window.dataLayer.push(arguments);
                 module.gtag('js', new Date());
+                module.id.forEach(trackingId => module.gtag('config', trackingId));
                 module.enable();
-                module.sendPageView();
             });
         }
     }
     sendPageView(options) {
         const module = this;
         if (module.isActive()) {
-            module.id.forEach(function (trackingId) {
+            module.id.forEach((trackingId) => {
                 const location = window.location;
                 module.gtag('event', 'page_view', Object.assign({ page_title: document.title, page_location: location.href, page_path: location.pathname, send_to: trackingId }, options));
             });

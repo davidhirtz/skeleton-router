@@ -4,7 +4,7 @@ export default class Router {
         Object.assign(router, Object.assign({ l: window.location, main: document.querySelector('main'), a: 'active', headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-Ajax-Request': 'route',
-            }, cache: {}, positions: {}, referrer: null, trackingIds: [], noXhrClass: 'no-xhr', noCacheClass: 'no-cache' }, config));
+            }, cache: {}, positions: {}, referrer: null, noXhrClass: 'no-xhr', noCacheClass: 'no-cache' }, config));
         router.init();
     }
     init() {

@@ -56,8 +56,8 @@ export default class Gtag implements ConsentModule {
                 module.gtag = () => window.dataLayer.push(arguments);
                 module.gtag('js', new Date());
 
+                module.id.forEach(trackingId => module.gtag('config', trackingId));
                 module.enable();
-                module.sendPageView();
             });
         }
     }
@@ -66,7 +66,7 @@ export default class Gtag implements ConsentModule {
         const module = this;
 
         if (module.isActive()) {
-            module.id.forEach(function (trackingId) {
+            module.id.forEach( (trackingId) => {
                 const location = window.location;
 
                 module.gtag('event', 'page_view', {
