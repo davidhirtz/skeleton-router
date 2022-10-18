@@ -32,7 +32,9 @@ export default class Gtag {
         if (module.id && navigator.userAgent.indexOf('Speed Insights') === -1) {
             loadScript(`https://www.googletagmanager.com/gtag/js?id=${module.id[0]}`, () => {
                 window.dataLayer = window.dataLayer || [];
-                module.gtag = () => window.dataLayer.push(arguments);
+                module.gtag = function () {
+                    window.dataLayer.push(arguments);
+                };
                 module.gtag('js', new Date());
                 module.id.forEach(trackingId => module.gtag('config', trackingId));
                 module.enable();

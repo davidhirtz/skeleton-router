@@ -53,7 +53,10 @@ export default class Gtag implements ConsentModule {
             loadScript(`https://www.googletagmanager.com/gtag/js?id=${module.id[0]}`, () => {
                 window.dataLayer = window.dataLayer || [];
 
-                module.gtag = () => window.dataLayer.push(arguments);
+                module.gtag = function () {
+                    window.dataLayer.push(arguments);
+                }
+
                 module.gtag('js', new Date());
 
                 module.id.forEach(trackingId => module.gtag('config', trackingId));
@@ -66,7 +69,7 @@ export default class Gtag implements ConsentModule {
         const module = this;
 
         if (module.isActive()) {
-            module.id.forEach( (trackingId) => {
+            module.id.forEach((trackingId) => {
                 const location = window.location;
 
                 module.gtag('event', 'page_view', {
