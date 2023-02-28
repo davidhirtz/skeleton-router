@@ -45,7 +45,9 @@ export default class Consent {
     }
     initContainer() {
         const consent = this;
-        consent.container.classList.add('active');
+        if (consent.container) {
+            consent.container.classList.add('active');
+        }
     }
     loadModules(categories) {
         const consent = this;
@@ -62,7 +64,13 @@ export default class Consent {
         const consent = this;
         consent.setCookie(categories);
         consent.loadModules(categories);
-        consent.container.classList.remove('active');
+        if (consent.container) {
+            consent.container.classList.remove('active');
+        }
+    }
+    hasCategory(category) {
+        const cookie = this.getCookie();
+        return cookie && cookie.split(',').includes(category);
     }
     getCookie() {
         const cookies = document.cookie ? document.cookie.split('; ') : [];

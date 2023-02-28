@@ -37,17 +37,20 @@ export default class Router {
             url.host !== router.l.host) {
             return;
         }
+        e.preventDefault();
         if (url.pathname !== router.l.pathname || url.search !== router.l.search) {
             history.pushState(null, target.title || document.title, router.sanitizeUrl(target.href));
             router.load(target.classList.contains(router.noCacheClass));
+            return;
         }
-        else if (url.hash) {
-            router.scrollTo(document.getElementById(url.hash.substring(1)));
+        if (url.hash) {
+            const element = document.getElementById(url.hash.substring(1));
+            if (element) {
+                router.scrollTo(element);
+                return;
+            }
         }
-        else {
-            router.onUnhandledClick(e, target);
-        }
-        e.preventDefault();
+        router.onUnhandledClick(e, target);
     }
     // noinspection JSUnusedLocalSymbols
     onUnhandledClick(e, target) {

@@ -72,16 +72,24 @@ export default class Router {
             return;
         }
 
+        e.preventDefault();
+
         if (url.pathname !== router.l.pathname || url.search !== router.l.search) {
             history.pushState(null, target.title || document.title, router.sanitizeUrl(target.href));
             router.load(target.classList.contains(router.noCacheClass));
-        } else if (url.hash) {
-            router.scrollTo(document.getElementById(url.hash.substring(1)));
-        } else {
-            router.onUnhandledClick(e, target);
+            return
         }
 
-        e.preventDefault();
+        if (url.hash) {
+            const element = document.getElementById(url.hash.substring(1));
+
+            if (element) {
+                router.scrollTo(element);
+                return;
+            }
+        }
+
+        router.onUnhandledClick(e, target);
     }
 
     // noinspection JSUnusedLocalSymbols

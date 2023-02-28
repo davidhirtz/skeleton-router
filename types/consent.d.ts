@@ -21,6 +21,7 @@ export default class Consent {
     initContainer(): void;
     loadModules(categories: any): void;
     setCategories(categories: any): void;
+    hasCategory(category: any): boolean;
     getCookie(): string | false;
     setCookie: (value: string, remove?: boolean) => void;
 }
