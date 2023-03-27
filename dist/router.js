@@ -22,6 +22,7 @@ export default class Router {
                 target = target.parentElement;
             }
         }, false);
+        router.scrollToHash();
     }
     onClick(e, target) {
         const router = this, url = target.href ? new URL(target.href) : false;
@@ -46,7 +47,7 @@ export default class Router {
         if (url.hash) {
             const element = document.getElementById(url.hash.substring(1));
             if (element) {
-                router.scrollTo(element);
+                router.scrollTo(element, router.scrollToHashOffset());
                 return;
             }
         }
@@ -126,12 +127,14 @@ export default class Router {
         else {
             router.setInnerHTML(router.main, html);
             router.resetScrollPosition();
+            router.scrollToHash();
         }
     }
     afterRender() {
     }
     resetScrollPosition() {
-        const router = this, hasPrevPos = router.isPopState && router.positions[router.href];
+        const router = this;
+        const hasPrevPos = router.isPopState && router.positions[router.href];
         window.scrollTo(hasPrevPos ? router.positions[router.href].x : 0, hasPrevPos ? router.positions[router.href].y : 0);
     }
     getRequest() {
@@ -154,9 +157,20 @@ export default class Router {
         });
     }
     scrollTo(top, offset) {
+        var _a;
         scroll({
-            top: (typeof top === 'number' ? top : top.offsetTop) + (offset || 0),
+            top: (typeof top === 'number' ? top : ((_a = top.offsetTop) !== null && _a !== void 0 ? _a : 0)) + (offset || 0),
             behavior: "smooth"
         });
+    }
+    scrollToHash() {
+        const router = this;
+        const target = location.hash ? document.getElementById(location.hash.substring(1)) : null;
+        if (target) {
+            router.scrollTo(target, target.offsetTop + router.scrollToHashOffset());
+        }
+    }
+    scrollToHashOffset() {
+        return 0;
     }
 }

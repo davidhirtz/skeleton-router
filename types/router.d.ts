@@ -28,4 +28,6 @@ export default class Router {
     sanitizeUrl(url: any): any;
     setInnerHTML(element: any, html: any): void;
     scrollTo(top: any, offset?: any): void;
+    scrollToHash(): void;
+    scrollToHashOffset(): number;
 }

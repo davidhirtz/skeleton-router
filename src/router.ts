@@ -53,6 +53,8 @@ export default class Router {
                 target = target.parentElement;
             }
         }, false);
+
+        router.scrollToHash();
     }
 
     onClick(e: MouseEvent, target: HTMLLinkElement) {
@@ -80,11 +82,12 @@ export default class Router {
             return
         }
 
+
         if (url.hash) {
             const element = document.getElementById(url.hash.substring(1));
 
             if (element) {
-                router.scrollTo(element);
+                router.scrollTo(element, router.scrollToHashOffset());
                 return;
             }
         }
@@ -180,6 +183,7 @@ export default class Router {
         } else {
             router.setInnerHTML(router.main, html);
             router.resetScrollPosition();
+            router.scrollToHash();
         }
     }
 
@@ -187,10 +191,9 @@ export default class Router {
     }
 
     resetScrollPosition(): void {
-        const router = this,
-            hasPrevPos = router.isPopState && router.positions[router.href];
-
-        window.scrollTo(hasPrevPos ? router.positions[router.href].x : 0, hasPrevPos ? router.positions[router.href].y : 0)
+        const router = this;
+        const hasPrevPos = router.isPopState && router.positions[router.href];
+        window.scrollTo(hasPrevPos ? router.positions[router.href].x : 0, hasPrevPos ? router.positions[router.href].y : 0);
     }
 
     getRequest() {
@@ -220,8 +223,20 @@ export default class Router {
 
     scrollTo(top, offset?) {
         scroll({
-            top: (typeof top === 'number' ? top : top.offsetTop) + (offset || 0),
+            top: (typeof top === 'number' ? top : (top.offsetTop ?? 0)) + (offset || 0),
             behavior: "smooth"
         });
+    }
+
+    scrollToHash() {
+        const router = this;
+        const target = location.hash ? document.getElementById(location.hash.substring(1)) : null;
+
+        if (target) {
+            router.scrollTo(target, target.offsetTop + router.scrollToHashOffset());
+        }
+    }
+    scrollToHashOffset() {
+        return 0;
     }
 }
