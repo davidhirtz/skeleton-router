@@ -167,7 +167,7 @@ export default class Router {
         const router = this;
         const target = location.hash ? document.getElementById(location.hash.substring(1)) : null;
         if (target) {
-            router.scrollTo(target, target.offsetTop + router.scrollToHashOffset());
+            router.scrollTo(target, router.scrollToHashOffset());
         }
     }
     scrollToHashOffset() {
