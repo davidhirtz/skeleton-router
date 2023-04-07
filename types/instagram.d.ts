@@ -24,3 +24,4 @@ export default class Instagram {
     renderMedia(item: FeedItem): string;
 }
 export {};
+//# sourceMappingURL=instagram.d.ts.map

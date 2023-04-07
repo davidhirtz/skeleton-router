@@ -20,3 +20,4 @@ export default class Gtag implements ConsentModule {
     load(): void;
     sendPageView(options?: Object): void;
 }
+//# sourceMappingURL=gtag.d.ts.map

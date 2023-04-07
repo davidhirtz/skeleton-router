@@ -6,3 +6,4 @@ export default class Nav {
     update(): void;
     updateByPathname(pathname: any): void;
 }
+//# sourceMappingURL=nav.d.ts.map

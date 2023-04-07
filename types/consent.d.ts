@@ -25,3 +25,4 @@ export default class Consent {
     getCookie(): string | false;
     setCookie: (value: string, remove?: boolean) => void;
 }
+//# sourceMappingURL=consent.d.ts.map

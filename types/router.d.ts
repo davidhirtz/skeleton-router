@@ -31,3 +31,4 @@ export default class Router {
     scrollToHash(): void;
     scrollToHashOffset(): number;
 }
+//# sourceMappingURL=router.d.ts.map
