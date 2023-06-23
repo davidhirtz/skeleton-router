@@ -2,15 +2,7 @@ export default class Nav {
     constructor(config) {
         const nav = this;
         const body = document.body;
-        const adminButtons = body.querySelectorAll('.admin-toggle');
         Object.assign(nav, Object.assign({ active: [], links: body.querySelectorAll('.nav-link'), matchAll: false }, config));
-        adminButtons.forEach((button) => {
-            button.addEventListener('click', (e) => {
-                const root = document.documentElement;
-                root.classList.toggle('is-admin');
-                e.preventDefault();
-            });
-        });
     }
     update() {
         this.updateByPathname(location.pathname);
