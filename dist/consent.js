@@ -68,6 +68,7 @@ export default class Consent {
             consent.container.classList.remove('active');
         }
     }
+    // noinspection JSUnusedGlobalSymbols
     hasCategory(category) {
         const cookie = this.getCookie();
         return cookie && cookie.split(',').includes(category);

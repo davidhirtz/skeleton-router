@@ -8,7 +8,7 @@ export declare const categories: {
     SOCIAL: string;
 };
 export default class Consent {
-    buttons: Array<HTMLElement>;
+    buttons: NodeListOf<HTMLElement>;
     categories: Array<string>;
     container: HTMLElement;
     cookieDomain?: string;
@@ -19,9 +19,9 @@ export default class Consent {
     init(): void;
     initButtons(): void;
     initContainer(): void;
-    loadModules(categories: any): void;
-    setCategories(categories: any): void;
-    hasCategory(category: any): boolean;
+    loadModules(categories: Array<string> | string): void;
+    setCategories(categories: string): void;
+    hasCategory(category: string): boolean;
     getCookie(): string | false;
     setCookie: (value: string, remove?: boolean) => void;
 }

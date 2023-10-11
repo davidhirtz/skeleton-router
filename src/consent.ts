@@ -10,7 +10,7 @@ export const categories = {
 }
 
 export default class Consent {
-    buttons: Array<HTMLElement>;
+    buttons: NodeListOf<HTMLElement>;
     categories: Array<string>;
     container: HTMLElement
     cookieDomain?: string;
@@ -68,7 +68,7 @@ export default class Consent {
         }
     }
 
-    loadModules(categories) {
+    loadModules(categories: Array<string>|string) {
         const consent = this;
 
         if (typeof categories === 'string') {
@@ -82,7 +82,7 @@ export default class Consent {
         });
     }
 
-    setCategories(categories) {
+    setCategories(categories: string) {
         const consent = this;
 
         consent.setCookie(categories);
@@ -93,7 +93,8 @@ export default class Consent {
         }
     }
 
-    hasCategory(category) {
+    // noinspection JSUnusedGlobalSymbols
+    hasCategory(category: string) {
         const cookie = this.getCookie();
         return cookie && cookie.split(',').includes(category);
     }
