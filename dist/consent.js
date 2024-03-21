@@ -1,7 +1,7 @@
 export const categories = {
     ANALYTICS: 'analytics',
+    EXTERNAL: 'external',
     MARKETING: 'marketing',
-    SOCIAL: 'social',
 };
 export default class Consent {
     constructor(config) {
@@ -21,7 +21,7 @@ export default class Consent {
                 '; path=/; sameSite=Lax';
         };
         const consent = this;
-        Object.assign(consent, Object.assign({ categories: [categories.ANALYTICS, categories.MARKETING, categories.SOCIAL], container: document.getElementById('cc'), cookieName: '_cc', modules: [] }, config));
+        Object.assign(consent, Object.assign({ categories: [categories.ANALYTICS, categories.MARKETING, categories.EXTERNAL], container: document.getElementById('cc'), cookieName: '_cc', modules: [] }, config));
         consent.init();
     }
     init() {
@@ -45,23 +45,26 @@ export default class Consent {
                 else {
                     let categories = [];
                     consent.getCheckboxes().forEach(($check) => {
-                        const newCategories = ($btn.dataset.consent || '').split(',');
-                        newCategories.forEach((category) => {
-                            if (!categories.includes(category)) {
-                                categories.push(category);
-                            }
-                        });
+                        if ($check.checked && !$check.disabled) {
+                            const newCategories = ($check.dataset.consent || '').split(',');
+                            newCategories.forEach((category) => {
+                                if (!categories.includes(category)) {
+                                    categories.push(category);
+                                }
+                            });
+                        }
                     });
-                    consent.setCategories(categories.join(','));
+                    consent.setCategories(categories ? categories.join(',') : null);
                 }
                 e.preventDefault();
             });
         });
     }
     initContainer() {
-        var _a;
         const consent = this;
-        (_a = consent.container) === null || _a === void 0 ? void 0 : _a.classList.add('active');
+        if (consent.container) {
+            consent.container.classList.add('active');
+        }
     }
     loadModules(categories) {
         const consent = this;
@@ -69,17 +72,18 @@ export default class Consent {
             categories = categories.split(',');
         }
         consent.modules.forEach((module) => {
-            if (module.categories.every((category) => categories.includes(category))) {
+            if (!module.categories || module.categories.every((category) => categories.includes(category))) {
                 module.load();
             }
         });
     }
     setCategories(categories) {
-        var _a;
         const consent = this;
         consent.setCookie(categories);
         consent.loadModules(categories);
-        (_a = consent.container) === null || _a === void 0 ? void 0 : _a.classList.remove('active');
+        if (consent.container) {
+            consent.container.classList.remove('active');
+        }
     }
     // noinspection JSUnusedGlobalSymbols
     hasCategory(category) {
@@ -100,7 +104,7 @@ export default class Consent {
     }
     ;
     getButtons() {
-        return document.querySelectorAll('.cc-button');
+        return document.querySelectorAll('.cc-confirm');
     }
     getCheckboxes() {
         return document.querySelectorAll('.cc-checkbox');

@@ -5,12 +5,11 @@ export interface ConsentModule {
 
 export const categories = {
     ANALYTICS: 'analytics',
+    EXTERNAL: 'external',
     MARKETING: 'marketing',
-    SOCIAL: 'social',
 }
 
 export default class Consent {
-    buttons: NodeListOf<HTMLButtonElement>;
     categories: Array<string>;
     container: HTMLElement
     cookieDomain?: string;
@@ -22,7 +21,7 @@ export default class Consent {
         const consent = this;
 
         Object.assign(consent, {
-            categories: [categories.ANALYTICS, categories.MARKETING, categories.SOCIAL],
+            categories: [categories.ANALYTICS, categories.MARKETING, categories.EXTERNAL],
             container: document.getElementById('cc'),
             cookieName: '_cc',
             modules: [],
@@ -56,16 +55,19 @@ export default class Consent {
                     let categories = [];
 
                     consent.getCheckboxes().forEach(($check: HTMLInputElement) => {
-                        const newCategories: Array<string> = ($btn.dataset.consent || '').split(',')
+                        if ($check.checked && !$check.disabled) {
+                            const newCategories: Array<string> = ($check.dataset.consent || '').split(',')
 
-                        newCategories.forEach((category) => {
-                            if (!categories.includes(category)) {
-                                categories.push(category);
-                            }
-                        })
+                            newCategories.forEach((category) => {
+                                if (!categories.includes(category)) {
+                                    categories.push(category);
+                                }
+                            })
+                        }
                     });
 
-                    consent.setCategories(categories.join(','));
+
+                    consent.setCategories(categories ? categories.join(',') : null);
                 }
 
                 e.preventDefault();
@@ -76,7 +78,9 @@ export default class Consent {
     initContainer() {
         const consent = this;
 
-        consent.container?.classList.add('active');
+        if (consent.container) {
+            consent.container.classList.add('active');
+        }
     }
 
     loadModules(categories: Array<string> | string) {
@@ -87,7 +91,7 @@ export default class Consent {
         }
 
         consent.modules.forEach((module) => {
-            if (module.categories.every((category) => categories.includes(category))) {
+            if (!module.categories || module.categories.every((category) => categories.includes(category))) {
                 module.load();
             }
         });
@@ -99,7 +103,9 @@ export default class Consent {
         consent.setCookie(categories);
         consent.loadModules(categories);
 
-        consent.container?.classList.remove('active');
+        if (consent.container) {
+            consent.container.classList.remove('active');
+        }
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -142,7 +148,7 @@ export default class Consent {
     };
 
     getButtons(): NodeListOf<HTMLButtonElement> {
-        return document.querySelectorAll('.cc-button');
+        return document.querySelectorAll('.cc-confirm');
     }
 
     getCheckboxes(): NodeListOf<HTMLInputElement> {

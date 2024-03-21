@@ -4,11 +4,10 @@ export interface ConsentModule {
 }
 export declare const categories: {
     ANALYTICS: string;
+    EXTERNAL: string;
     MARKETING: string;
-    SOCIAL: string;
 };
 export default class Consent {
-    buttons: NodeListOf<HTMLButtonElement>;
     categories: Array<string>;
     container: HTMLElement;
     cookieDomain?: string;
