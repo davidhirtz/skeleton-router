@@ -8,12 +8,12 @@ export declare const categories: {
     SOCIAL: string;
 };
 export default class Consent {
-    buttons: NodeListOf<HTMLElement>;
+    buttons: NodeListOf<HTMLButtonElement>;
     categories: Array<string>;
     container: HTMLElement;
     cookieDomain?: string;
     cookieName: string;
-    defaultValue: string;
+    expires?: string;
     modules: Array<ConsentModule>;
     constructor(config?: Object);
     init(): void;
@@ -24,5 +24,7 @@ export default class Consent {
     hasCategory(category: string): boolean;
     getCookie(): string | false;
     setCookie: (value: string, remove?: boolean) => void;
+    getButtons(): NodeListOf<HTMLButtonElement>;
+    getCheckboxes(): NodeListOf<HTMLInputElement>;
 }
 //# sourceMappingURL=consent.d.ts.map

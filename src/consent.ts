@@ -10,23 +10,21 @@ export const categories = {
 }
 
 export default class Consent {
-    buttons: NodeListOf<HTMLElement>;
+    buttons: NodeListOf<HTMLButtonElement>;
     categories: Array<string>;
     container: HTMLElement
     cookieDomain?: string;
     cookieName: string;
-    defaultValue: string;
+    expires?: string;
     modules: Array<ConsentModule>;
 
     constructor(config?: Object) {
         const consent = this;
 
         Object.assign(consent, {
-            buttons: document.querySelectorAll('.cc-button'),
             categories: [categories.ANALYTICS, categories.MARKETING, categories.SOCIAL],
             container: document.getElementById('cc'),
             cookieName: '_cc',
-            defaultValue: 'none',
             modules: [],
             ...config
         });
@@ -50,25 +48,38 @@ export default class Consent {
     initButtons() {
         const consent = this;
 
-        if (consent.buttons) {
-            consent.buttons.forEach((button) => {
-                button.addEventListener('click', (e) => {
-                    consent.setCategories(button.dataset.consent || consent.defaultValue);
-                    e.preventDefault();
-                });
+        consent.getButtons().forEach(($btn: HTMLButtonElement) => {
+            $btn.addEventListener('click', (e) => {
+                if ($btn.hasAttribute('data-consent')) {
+                    consent.setCategories($btn.dataset.consent);
+                } else {
+                    let categories = [];
+
+                    consent.getCheckboxes().forEach(($check: HTMLInputElement) => {
+                        const newCategories: Array<string> = ($btn.dataset.consent || '').split(',')
+
+                        newCategories.forEach((category) => {
+                            if (!categories.includes(category)) {
+                                categories.push(category);
+                            }
+                        })
+                    });
+
+                    consent.setCategories(categories.join(','));
+                }
+
+                e.preventDefault();
             });
-        }
+        });
     }
 
     initContainer() {
         const consent = this;
 
-        if (consent.container) {
-            consent.container.classList.add('active');
-        }
+        consent.container?.classList.add('active');
     }
 
-    loadModules(categories: Array<string>|string) {
+    loadModules(categories: Array<string> | string) {
         const consent = this;
 
         if (typeof categories === 'string') {
@@ -88,9 +99,7 @@ export default class Consent {
         consent.setCookie(categories);
         consent.loadModules(categories);
 
-        if (consent.container) {
-            consent.container.classList.remove('active');
-        }
+        consent.container?.classList.remove('active');
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -100,7 +109,9 @@ export default class Consent {
     }
 
     getCookie() {
-        const cookies = document.cookie ? document.cookie.split('; ') : [];
+        const cookies = document.cookie
+            ? document.cookie.split('; ')
+            : [];
 
         for (let i = 0; i < cookies.length; i++) {
             const params = cookies[i].split('=');
@@ -115,9 +126,11 @@ export default class Consent {
 
     setCookie = function (value: string, remove?: boolean) {
         const consent = this;
-        let expires = 'Thu, 01 Jan 1970 00:00:01 GMT';
+        let expires: string = consent.expires;
 
-        if (!remove) {
+        if (remove) {
+            expires = 'Thu, 01 Jan 1970 00:00:01 GMT';
+        } else if (!expires) {
             const date = new Date();
             date.setFullYear(date.getFullYear() + 1);
             expires = date.toUTCString();
@@ -127,4 +140,12 @@ export default class Consent {
             (consent.cookieDomain ? `; domain=${consent.cookieDomain}` : '') +
             '; path=/; sameSite=Lax';
     };
+
+    getButtons(): NodeListOf<HTMLButtonElement> {
+        return document.querySelectorAll('.cc-button');
+    }
+
+    getCheckboxes(): NodeListOf<HTMLInputElement> {
+        return document.querySelectorAll('.cc-checkbox');
+    }
 }
