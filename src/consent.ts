@@ -66,7 +66,6 @@ export default class Consent {
                         }
                     });
 
-
                     consent.setCategories(categories ? categories.join(',') : null);
                 }
 
