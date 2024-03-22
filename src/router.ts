@@ -12,7 +12,7 @@ export default class Router {
     href: string;
     params: string[];
 
-    constructor(config?) {
+    constructor(config?: Object) {
         const router = this;
 
         Object.assign(router, {
@@ -37,7 +37,7 @@ export default class Router {
     init() {
         const router = this;
 
-        window.addEventListener('popstate', function (e) {
+        window.addEventListener('popstate', function (e: PopStateEvent) {
             router.onPopState.call(router, e);
         }, false);
 
@@ -57,28 +57,28 @@ export default class Router {
         router.scrollToHash();
     }
 
-    onClick(e: MouseEvent, target: HTMLLinkElement) {
+    onClick(e: MouseEvent, $link: HTMLLinkElement) {
         const router = this,
-            url = target.href ? new URL(target.href) : false;
+            url = $link.href ? new URL($link.href) : false;
 
-        // noinspection JSDeprecatedSymbols – PhpStorm is unhappy with the `target` attribute
-        if (e.defaultPrevented ||
-            e.ctrlKey ||
-            e.metaKey ||
-            e.shiftKey ||
-            !url ||
-            target.hasAttribute('download') ||
-            target.classList.contains(router.noXhrClass) ||
-            target.target && target.target !== '_self' ||
-            url.host !== router.l.host) {
+        if (e.defaultPrevented
+            || e.ctrlKey
+            || e.metaKey
+            || e.shiftKey
+            || !url
+            || $link.hasAttribute('download')
+            || $link.classList.contains(router.noXhrClass)
+            || $link.target && $link.target !== '_self'
+            || url.host !== router.l.host
+        ) {
             return;
         }
 
         e.preventDefault();
 
         if (url.pathname !== router.l.pathname || url.search !== router.l.search) {
-            history.pushState(null, target.title || document.title, router.sanitizeUrl(target.href));
-            router.load(target.classList.contains(router.noCacheClass));
+            history.pushState(null, $link.title || document.title, router.sanitizeUrl($link.href));
+            router.load($link.classList.contains(router.noCacheClass));
             return
         }
 
@@ -92,14 +92,14 @@ export default class Router {
             }
         }
 
-        router.onUnhandledClick(e, target);
+        router.onUnhandledClick(e, $link);
     }
 
     // noinspection JSUnusedLocalSymbols
     onUnhandledClick(e: MouseEvent, target: HTMLLinkElement): void {
     }
 
-    onPopState(e) {
+    onPopState(e: PopStateEvent) {
         const router = this;
 
         router.isPopState = true;
@@ -173,7 +173,7 @@ export default class Router {
         router.isPopState = false;
     }
 
-    renderContent(html: String): void {
+    renderContent(html: string): void {
         const router = this;
 
         // Fixes iOS Safari bug which loads full page on browser startup, check for "<!DOCTYPE html>" and
@@ -203,11 +203,11 @@ export default class Router {
         router.params = router.l.pathname.replace(/^\//, '').split(/[/?#]/);
     }
 
-    sanitizeUrl(url) {
+    sanitizeUrl(url: string) {
         return url.replace(/\/$/, '');
     };
 
-    setInnerHTML(element, html) {
+    setInnerHTML(element: HTMLElement, html: string) {
         element.innerHTML = html;
 
         // Replace script tags with executable script tags, this executes javascript loaded as text via XMLHttpRequest
@@ -221,7 +221,7 @@ export default class Router {
         });
     }
 
-    scrollTo(top, offset?) {
+    scrollTo(top: number | HTMLElement, offset?: number) {
         scroll({
             top: (typeof top === 'number' ? top : (top.offsetTop ?? 0)) + (offset || 0),
             behavior: "smooth"
@@ -236,6 +236,7 @@ export default class Router {
             router.scrollTo(target, router.scrollToHashOffset());
         }
     }
+
     scrollToHashOffset() {
         return 0;
     }

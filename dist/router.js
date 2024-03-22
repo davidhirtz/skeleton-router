@@ -24,24 +24,23 @@ export default class Router {
         }, false);
         router.scrollToHash();
     }
-    onClick(e, target) {
-        const router = this, url = target.href ? new URL(target.href) : false;
-        // noinspection JSDeprecatedSymbols – PhpStorm is unhappy with the `target` attribute
-        if (e.defaultPrevented ||
-            e.ctrlKey ||
-            e.metaKey ||
-            e.shiftKey ||
-            !url ||
-            target.hasAttribute('download') ||
-            target.classList.contains(router.noXhrClass) ||
-            target.target && target.target !== '_self' ||
-            url.host !== router.l.host) {
+    onClick(e, $link) {
+        const router = this, url = $link.href ? new URL($link.href) : false;
+        if (e.defaultPrevented
+            || e.ctrlKey
+            || e.metaKey
+            || e.shiftKey
+            || !url
+            || $link.hasAttribute('download')
+            || $link.classList.contains(router.noXhrClass)
+            || $link.target && $link.target !== '_self'
+            || url.host !== router.l.host) {
             return;
         }
         e.preventDefault();
         if (url.pathname !== router.l.pathname || url.search !== router.l.search) {
-            history.pushState(null, target.title || document.title, router.sanitizeUrl(target.href));
-            router.load(target.classList.contains(router.noCacheClass));
+            history.pushState(null, $link.title || document.title, router.sanitizeUrl($link.href));
+            router.load($link.classList.contains(router.noCacheClass));
             return;
         }
         if (url.hash) {
@@ -51,7 +50,7 @@ export default class Router {
                 return;
             }
         }
-        router.onUnhandledClick(e, target);
+        router.onUnhandledClick(e, $link);
     }
     // noinspection JSUnusedLocalSymbols
     onUnhandledClick(e, target) {
