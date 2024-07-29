@@ -1,3 +1,5 @@
+const doc = document;
+
 export interface ConsentModule {
     categories: Array<string>;
     load: () => void;
@@ -22,7 +24,7 @@ export default class Consent {
 
         Object.assign(consent, {
             categories: [categories.ANALYTICS, categories.MARKETING, categories.EXTERNAL],
-            container: document.getElementById('cc'),
+            container: doc.getElementById('cc'),
             cookieName: '_cc',
             modules: [],
             ...config
@@ -48,7 +50,7 @@ export default class Consent {
         const consent = this;
 
         consent.getButtons().forEach(($btn: HTMLButtonElement) => {
-            $btn.addEventListener('click', (e) => {
+            $btn.onclick = (e) => {
                 if ($btn.hasAttribute('data-consent')) {
                     consent.setCategories($btn.dataset.consent);
                 } else {
@@ -56,7 +58,7 @@ export default class Consent {
 
                     consent.getCheckboxes().forEach(($check: HTMLInputElement) => {
                         if ($check.checked && !$check.disabled) {
-                            const newCategories: Array<string> = ($check.dataset.consent || '').split(',')
+                            const newCategories: string[] = ($check.dataset.consent || '').split(',')
 
                             newCategories.forEach((category) => {
                                 if (!categories.includes(category)) {
@@ -70,7 +72,7 @@ export default class Consent {
                 }
 
                 e.preventDefault();
-            });
+            };
         });
     }
 
@@ -114,8 +116,8 @@ export default class Consent {
     }
 
     getCookie() {
-        const cookies = document.cookie
-            ? document.cookie.split('; ')
+        const cookies = doc.cookie
+            ? doc.cookie.split('; ')
             : [];
 
         for (let i = 0; i < cookies.length; i++) {
@@ -141,16 +143,16 @@ export default class Consent {
             expires = date.toUTCString();
         }
 
-        document.cookie = `${consent.cookieName}=${value}; expires=${expires}` +
+        doc.cookie = `${consent.cookieName}=${value}; expires=${expires}` +
             (consent.cookieDomain ? `; domain=${consent.cookieDomain}` : '') +
             '; path=/; sameSite=Lax';
     };
 
     getButtons(): NodeListOf<HTMLButtonElement> {
-        return document.querySelectorAll('.cc-confirm');
+        return doc.querySelectorAll('.cc-confirm');
     }
 
     getCheckboxes(): NodeListOf<HTMLInputElement> {
-        return document.querySelectorAll('.cc-checkbox');
+        return doc.querySelectorAll('.cc-checkbox');
     }
 }

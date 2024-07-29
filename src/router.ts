@@ -95,8 +95,7 @@ export default class Router {
         router.onUnhandledClick(e, $link);
     }
 
-    // noinspection JSUnusedLocalSymbols
-    onUnhandledClick(e: MouseEvent, target: HTMLLinkElement): void {
+    onUnhandledClick(_e: MouseEvent, _$target: HTMLLinkElement): void {
     }
 
     onPopState(e: PopStateEvent) {

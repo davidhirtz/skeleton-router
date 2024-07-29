@@ -52,8 +52,7 @@ export default class Router {
         }
         router.onUnhandledClick(e, $link);
     }
-    // noinspection JSUnusedLocalSymbols
-    onUnhandledClick(e, target) {
+    onUnhandledClick(_e, _$target) {
     }
     onPopState(e) {
         const router = this;

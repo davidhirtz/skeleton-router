@@ -1,6 +1,6 @@
 {
   "name": "skeleton-router",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "A simple ES6 module router",
   "type": "module",
   "main": "dist/index.js",

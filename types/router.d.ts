@@ -14,7 +14,7 @@ export default class Router {
     constructor(config?: Object);
     init(): void;
     onClick(e: MouseEvent, $link: HTMLLinkElement): void;
-    onUnhandledClick(e: MouseEvent, target: HTMLLinkElement): void;
+    onUnhandledClick(_e: MouseEvent, _$target: HTMLLinkElement): void;
     onPopState(e: PopStateEvent): void;
     beforeLoad(): boolean;
     load(disableCache?: boolean): void;

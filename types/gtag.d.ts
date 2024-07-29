@@ -1,4 +1,3 @@
-/// <reference types="gtag.js" />
 import { ConsentModule } from './consent.js';
 declare global {
     interface Window {

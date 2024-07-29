@@ -1,3 +1,4 @@
+const doc = document;
 export const categories = {
     ANALYTICS: 'analytics',
     EXTERNAL: 'external',
@@ -16,12 +17,12 @@ export default class Consent {
                 date.setFullYear(date.getFullYear() + 1);
                 expires = date.toUTCString();
             }
-            document.cookie = `${consent.cookieName}=${value}; expires=${expires}` +
+            doc.cookie = `${consent.cookieName}=${value}; expires=${expires}` +
                 (consent.cookieDomain ? `; domain=${consent.cookieDomain}` : '') +
                 '; path=/; sameSite=Lax';
         };
         const consent = this;
-        Object.assign(consent, Object.assign({ categories: [categories.ANALYTICS, categories.MARKETING, categories.EXTERNAL], container: document.getElementById('cc'), cookieName: '_cc', modules: [] }, config));
+        Object.assign(consent, Object.assign({ categories: [categories.ANALYTICS, categories.MARKETING, categories.EXTERNAL], container: doc.getElementById('cc'), cookieName: '_cc', modules: [] }, config));
         consent.init();
     }
     init() {
@@ -38,7 +39,7 @@ export default class Consent {
     initButtons() {
         const consent = this;
         consent.getButtons().forEach(($btn) => {
-            $btn.addEventListener('click', (e) => {
+            $btn.onclick = (e) => {
                 if ($btn.hasAttribute('data-consent')) {
                     consent.setCategories($btn.dataset.consent);
                 }
@@ -57,7 +58,7 @@ export default class Consent {
                     consent.setCategories(categories ? categories.join(',') : null);
                 }
                 e.preventDefault();
-            });
+            };
         });
     }
     initContainer() {
@@ -91,8 +92,8 @@ export default class Consent {
         return cookie && cookie.split(',').includes(category);
     }
     getCookie() {
-        const cookies = document.cookie
-            ? document.cookie.split('; ')
+        const cookies = doc.cookie
+            ? doc.cookie.split('; ')
             : [];
         for (let i = 0; i < cookies.length; i++) {
             const params = cookies[i].split('=');
@@ -104,9 +105,9 @@ export default class Consent {
     }
     ;
     getButtons() {
-        return document.querySelectorAll('.cc-confirm');
+        return doc.querySelectorAll('.cc-confirm');
     }
     getCheckboxes() {
-        return document.querySelectorAll('.cc-checkbox');
+        return doc.querySelectorAll('.cc-checkbox');
     }
 }

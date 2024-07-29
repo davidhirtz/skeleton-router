@@ -11,5 +11,9 @@
   },
   "include": [
     "src/index.ts"
-  ]
+  ],
+
+  /* Linting */
+  "strict": true,
+  "noFallthroughCasesInSwitch": true
 }
