@@ -30,7 +30,7 @@ export default class Gtag implements ConsentModule {
             ...config,
         });
 
-        module.tags = !Array.isArray(tags) ? tags.split(',') : tags;
+        module.tags = tags ? (!Array.isArray(tags) ? tags.split(',') : tags) : null;
         module._active = false;
     }
 

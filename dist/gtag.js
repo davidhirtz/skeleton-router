@@ -7,7 +7,7 @@ export default class Gtag {
         Object.assign(module, Object.assign({ categories: [categories.ANALYTICS], consentMode: true, options: {
                 'anonymize_ip': true,
             } }, config));
-        module.tags = !Array.isArray(tags) ? tags.split(',') : tags;
+        module.tags = tags ? (!Array.isArray(tags) ? tags.split(',') : tags) : null;
         module._active = false;
     }
     enable() {
