@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {ConsentModule, categories} from './consent.js';
 import {loadScript} from './utils.js';
 
@@ -5,81 +7,85 @@ declare global {
     // noinspection JSUnusedGlobalSymbols
     interface Window {
         dataLayer: any;
+        gtag: Gtag.Gtag;
     }
 }
 
-/**
- * Google Analytics module.
- */
 export default class Gtag implements ConsentModule {
+    _active: boolean;
     categories: Array<string>;
-    _isActive: boolean;
-    id: Array<string> | null;
-    gtag: Gtag.Gtag;
+    consent: boolean;
+    tags: Array<string> | null;
+    options: Object;
 
-    constructor(id?: any) {
+    constructor(tags?: string[] | string | null, config?: Object) {
         const module = this;
 
         Object.assign(module, {
             categories: [categories.ANALYTICS],
-            id: null,
-            gtag: null,
-            _isActive: false,
+            consentMode: true,
+            options: {
+                'anonymize_ip': true,
+            },
+            ...config,
         });
 
-        if (id) {
-            module.id = !Array.isArray(module.id) ? [id] : id;
-        }
+        module.tags = !Array.isArray(tags) ? tags.split(',') : tags;
+        module._active = false;
     }
 
     enable() {
-        this._isActive = true;
+        this._active = true;
     }
 
     disable() {
-        this._isActive = false;
+        this._active = false;
     }
 
     isActive() {
         const module = this;
-        return module.isActive && module.gtag && module.id;
+        return module.isActive && window.gtag && module.tags;
     }
 
     load() {
-        const module = this;
-
-        // Disable for Google Page Speed Insights.
-        if (module.id && navigator.userAgent.indexOf('Speed Insights') === -1) {
-            loadScript(`https://www.googletagmanager.com/gtag/js?id=${module.id[0]}`, () => {
-                window.dataLayer = window.dataLayer || [];
-
-                module.gtag = function () {
-                    window.dataLayer.push(arguments);
-                }
-
-                module.gtag('js', new Date());
-
-                module.id.forEach(trackingId => module.gtag('config', trackingId));
-                module.enable();
-            });
+        if (this.tags) {
+            loadScript(`https://www.googletagmanager.com/gtag/js?id=${this.tags[0]}`, () => this.init());
         }
     }
 
-    sendPageView(options?: Object) {
+    init() {
         const module = this;
+        const denied = 'denied';
+        const granted = 'granted';
 
-        if (module.isActive()) {
-            module.id.forEach((trackingId) => {
-                const location = window.location;
+        window.dataLayer = window.dataLayer || [];
 
-                module.gtag('event', 'page_view', {
-                    page_title: document.title,
-                    page_location: location.href,
-                    page_path: location.pathname,
-                    send_to: trackingId,
-                    ...options
-                });
+        window.gtag = function () {
+            window.dataLayer.push(arguments);
+        }
+
+        if (module.consent) {
+            window.gtag('consent', 'default', {
+                'ad_storage': denied,
+                'ad_user_data': denied,
+                'ad_personalization': denied,
+                'analytics_storage': denied
             });
         }
+
+        window.gtag('js', new Date());
+
+        module.tags.forEach(trackingId => window.gtag('config', trackingId, module.options));
+
+        if (module.consent) {
+            window.gtag('consent', 'update', {
+                'ad_user_data': granted,
+                'ad_personalization': granted,
+                'ad_storage': granted,
+                'analytics_storage': granted
+            });
+        }
+
+        module.enable();
     }
 }

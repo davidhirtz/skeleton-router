@@ -2,21 +2,20 @@ import { ConsentModule } from './consent.js';
 declare global {
     interface Window {
         dataLayer: any;
+        gtag: Gtag.Gtag;
     }
 }
-/**
- * Google Analytics module.
- */
 export default class Gtag implements ConsentModule {
+    _active: boolean;
     categories: Array<string>;
-    _isActive: boolean;
-    id: Array<string> | null;
-    gtag: Gtag.Gtag;
-    constructor(id?: any);
+    consent: boolean;
+    tags: Array<string> | null;
+    options: Object;
+    constructor(tags?: string[] | string | null, config?: Object);
     enable(): void;
     disable(): void;
     isActive(): string[];
     load(): void;
-    sendPageView(options?: Object): void;
+    init(): void;
 }
 //# sourceMappingURL=gtag.d.ts.map
