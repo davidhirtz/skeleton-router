@@ -9,12 +9,14 @@ export declare const categories: {
 };
 export default class Consent {
     #private;
-    categories: Array<string>;
+    accepted: Set<string>;
+    categories: Set<string>;
     container: HTMLElement;
     cookieDomain?: string;
     cookieName: string;
     expires?: string;
     modules: Array<ConsentModule>;
+    version: string;
     constructor(config?: Object);
     init(): void;
     initButtons(): void;
@@ -23,8 +25,8 @@ export default class Consent {
     setCategories(categories: Set<string> | string): void;
     addCategories(categories: Set<string> | string): void;
     hasCategory(category: string): boolean;
-    getCookie(): string | false;
-    setCookie: (value: Set<string> | string, remove?: boolean) => void;
+    getCookie(): string;
+    setCookie: (remove?: boolean) => void;
     getButtons(): NodeListOf<HTMLButtonElement>;
     getCheckboxes(): NodeListOf<HTMLInputElement>;
 }

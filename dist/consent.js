@@ -10,36 +10,35 @@ export const categories = {
     MARKETING: 'marketing',
 };
 const doc = document;
-const accpetedCategories = new Set();
 class Consent {
     constructor(config) {
         _Consent_instances.add(this);
-        this.setCookie = function (value, remove) {
+        this.setCookie = function (remove) {
             const consent = this;
+            const value = remove ? '' : [consent.version, ...consent.accepted].join(',');
             let expires = consent.expires;
             if (remove) {
                 expires = 'Thu, 01 Jan 1970 00:00:01 GMT';
-                value = '';
             }
             else if (!expires) {
                 const date = new Date();
                 date.setFullYear(date.getFullYear() + 1);
                 expires = date.toUTCString();
-                value = [...value].join(',');
             }
             doc.cookie = `${consent.cookieName}=${value}; expires=${expires}`
                 + (consent.cookieDomain ? `; domain=${consent.cookieDomain}` : '')
                 + '; path=/; sameSite=Lax';
         };
         const consent = this;
-        Object.assign(consent, Object.assign({ categories: [categories.ANALYTICS, categories.MARKETING, categories.EXTERNAL], container: doc.getElementById('cc'), cookieName: '_cc', modules: [] }, config));
+        Object.assign(consent, Object.assign({ categories: new Set(Object.values(categories)), container: doc.getElementById('cc'), cookieName: '_cc', modules: [], version: 'v1' }, config));
         consent.init();
     }
     init() {
         const consent = this;
-        const categories = consent.getCookie();
-        if (categories) {
-            consent.loadModules(categories);
+        const categories = __classPrivateFieldGet(consent, _Consent_instances, "m", _Consent_saniziteCategories).call(consent, consent.getCookie());
+        consent.accepted = categories.delete(consent.version) ? __classPrivateFieldGet(consent, _Consent_instances, "m", _Consent_saniziteCategories).call(consent, categories) : new Set();
+        if (consent.accepted.size) {
+            consent.loadModules(consent.accepted);
         }
         else {
             consent.initContainer();
@@ -50,31 +49,25 @@ class Consent {
         const consent = this;
         consent.getButtons().forEach(($btn) => {
             $btn.onclick = (e) => {
-                if ($btn.hasAttribute('data-consent')) {
-                    consent.setCategories($btn.dataset.consent);
-                }
-                else {
-                    let categories = [];
+                const categories = $btn.dataset.consent === 'all'
+                    ? consent.categories
+                    : new Set($btn.dataset.consent.split(',').filter(v => v));
+                if (!categories.size) {
                     consent.getCheckboxes().forEach(($check) => {
-                        if ($check.checked && !$check.disabled) {
+                        if ($check.checked) {
                             const newCategories = ($check.dataset.consent || '').split(',');
-                            newCategories.forEach((category) => {
-                                if (!categories.includes(category)) {
-                                    categories.push(category);
-                                }
-                            });
+                            newCategories.forEach((category) => categories.add(category));
                         }
                     });
-                    consent.setCategories(categories ? categories.join(',') : null);
                 }
+                consent.setCategories(categories);
                 e.preventDefault();
             };
         });
     }
     initContainer() {
-        if (this.container) {
-            this.container.classList.add('active');
-        }
+        var _a;
+        (_a = this.container) === null || _a === void 0 ? void 0 : _a.classList.add('active');
     }
     loadModules(categories) {
         categories = __classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories);
@@ -85,23 +78,23 @@ class Consent {
         });
     }
     setCategories(categories) {
+        var _a;
         const consent = this;
-        categories = __classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories);
-        consent.setCookie(categories);
-        consent.loadModules(categories);
-        if (consent.container) {
-            consent.container.classList.remove('active');
-        }
+        consent.accepted = __classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories);
+        consent.setCookie();
+        consent.loadModules(consent.accepted);
+        (_a = consent.container) === null || _a === void 0 ? void 0 : _a.classList.remove('active');
     }
     addCategories(categories) {
-        const newCategories = [...__classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories)].filter((category) => !accpetedCategories.has(category));
+        const newCategories = new Set([...__classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories)].filter((category) => !this.accepted.has(category)));
         if (newCategories) {
-            newCategories.forEach((category) => accpetedCategories.add(category));
+            newCategories.forEach((category) => this.accepted.add(category));
         }
+        this.setCookie();
+        this.loadModules(newCategories);
     }
     hasCategory(category) {
-        const cookie = this.getCookie();
-        return cookie && cookie.split(',').includes(category);
+        return this.accepted.has(category);
     }
     getCookie() {
         const cookies = doc.cookie
@@ -113,14 +106,14 @@ class Consent {
                 return params[1];
             }
         }
-        return false;
+        return '';
     }
     ;
     getButtons() {
-        return doc.querySelectorAll('.cc-confirm');
+        return doc.querySelectorAll('button[data-consent]');
     }
     getCheckboxes() {
-        return doc.querySelectorAll('.cc-checkbox');
+        return doc.querySelectorAll('input[data-consent]');
     }
 }
 _Consent_instances = new WeakSet(), _Consent_saniziteCategories = function _Consent_saniziteCategories(categories) {

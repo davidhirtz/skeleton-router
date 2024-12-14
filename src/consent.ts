@@ -10,24 +10,26 @@ export const categories = {
 }
 
 const doc = document;
-const accpetedCategories = new Set();
 
 export default class Consent {
-    categories: Array<string>;
+    accepted: Set<string>;
+    categories: Set<string>;
     container: HTMLElement
     cookieDomain?: string;
     cookieName: string;
     expires?: string;
     modules: Array<ConsentModule>;
+    version: string;
 
     constructor(config?: Object) {
         const consent = this;
 
         Object.assign(consent, {
-            categories: [categories.ANALYTICS, categories.MARKETING, categories.EXTERNAL],
+            categories: new Set(Object.values(categories)),
             container: doc.getElementById('cc'),
             cookieName: '_cc',
             modules: [],
+            version: 'v1',
             ...config
         });
 
@@ -36,10 +38,12 @@ export default class Consent {
 
     init() {
         const consent = this;
-        const categories = consent.getCookie();
+        const categories = consent.#saniziteCategories(consent.getCookie());
 
-        if (categories) {
-            consent.loadModules(categories);
+        consent.accepted = categories.delete(consent.version) ? consent.#saniziteCategories(categories) : new Set();
+
+        if (consent.accepted.size) {
+            consent.loadModules(consent.accepted);
         } else {
             consent.initContainer();
         }
@@ -52,25 +56,20 @@ export default class Consent {
 
         consent.getButtons().forEach(($btn: HTMLButtonElement) => {
             $btn.onclick = (e) => {
-                if ($btn.hasAttribute('data-consent')) {
-                    consent.setCategories($btn.dataset.consent);
-                } else {
-                    let categories = [];
+                const categories = $btn.dataset.consent === 'all'
+                    ? consent.categories
+                    : new Set($btn.dataset.consent.split(',').filter(v => v));
 
+                if (!categories.size) {
                     consent.getCheckboxes().forEach(($check: HTMLInputElement) => {
-                        if ($check.checked && !$check.disabled) {
+                        if ($check.checked) {
                             const newCategories: string[] = ($check.dataset.consent || '').split(',')
-
-                            newCategories.forEach((category) => {
-                                if (!categories.includes(category)) {
-                                    categories.push(category);
-                                }
-                            })
+                            newCategories.forEach((category) => categories.add(category))
                         }
                     });
-
-                    consent.setCategories(categories ? categories.join(',') : null);
                 }
+
+                consent.setCategories(categories);
 
                 e.preventDefault();
             };
@@ -78,9 +77,7 @@ export default class Consent {
     }
 
     initContainer() {
-        if (this.container) {
-            this.container.classList.add('active');
-        }
+        this.container?.classList.add('active');
     }
 
     loadModules(categories: Set<string> | string) {
@@ -95,30 +92,30 @@ export default class Consent {
 
     setCategories(categories: Set<string> | string) {
         const consent = this;
-        categories = this.#saniziteCategories(categories);
+        consent.accepted = this.#saniziteCategories(categories);
 
-        consent.setCookie(categories);
-        consent.loadModules(categories);
+        consent.setCookie();
+        consent.loadModules(consent.accepted);
 
-        if (consent.container) {
-            consent.container.classList.remove('active');
-        }
+        consent.container?.classList.remove('active');
     }
 
     addCategories(categories: Set<string> | string) {
-        const newCategories = [...this.#saniziteCategories(categories)].filter((category) => !accpetedCategories.has(category));
+        const newCategories = new Set([...this.#saniziteCategories(categories)].filter((category) => !this.accepted.has(category)));
 
         if (newCategories) {
-            newCategories.forEach((category) => accpetedCategories.add(category));
+            newCategories.forEach((category) => this.accepted.add(category));
         }
+
+        this.setCookie();
+        this.loadModules(newCategories);
     }
 
     hasCategory(category: string) {
-        const cookie = this.getCookie();
-        return cookie && cookie.split(',').includes(category);
+        return this.accepted.has(category);
     }
 
-    getCookie() {
+    getCookie(): string {
         const cookies = doc.cookie
             ? doc.cookie.split('; ')
             : [];
@@ -131,21 +128,21 @@ export default class Consent {
             }
         }
 
-        return false;
+        return '';
     };
 
-    setCookie = function (value: Set<string> | string, remove?: boolean) {
+    setCookie = function (remove?: boolean) {
         const consent = this;
+        const value: string = remove ? '' : [consent.version,...consent.accepted].join(',');
+
         let expires: string = consent.expires;
 
         if (remove) {
             expires = 'Thu, 01 Jan 1970 00:00:01 GMT';
-            value = '';
         } else if (!expires) {
             const date = new Date();
             date.setFullYear(date.getFullYear() + 1);
             expires = date.toUTCString();
-            value = [...value].join(',');
         }
 
         doc.cookie = `${consent.cookieName}=${value}; expires=${expires}`
@@ -154,11 +151,11 @@ export default class Consent {
     };
 
     getButtons(): NodeListOf<HTMLButtonElement> {
-        return doc.querySelectorAll('.cc-confirm');
+        return doc.querySelectorAll('button[data-consent]');
     }
 
     getCheckboxes(): NodeListOf<HTMLInputElement> {
-        return doc.querySelectorAll('.cc-checkbox');
+        return doc.querySelectorAll('input[data-consent]');
     }
 
     #saniziteCategories(categories: Array<string> | Set<string> | string): Set<string> {
