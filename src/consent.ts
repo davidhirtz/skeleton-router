@@ -101,14 +101,15 @@ export default class Consent {
     }
 
     addCategories(categories: Set<string> | string) {
-        const newCategories = new Set([...this.#saniziteCategories(categories)].filter((category) => !this.accepted.has(category)));
+        const consent = this;
+        const newCategories = new Set([...consent.#saniziteCategories(categories)].filter((category) => !consent.accepted.has(category)));
 
         if (newCategories) {
-            newCategories.forEach((category) => this.accepted.add(category));
+            newCategories.forEach((category) => consent.accepted.add(category));
         }
 
-        this.setCookie();
-        this.loadModules(newCategories);
+        consent.setCookie();
+        consent.loadModules(newCategories);
     }
 
     hasCategory(category: string) {
