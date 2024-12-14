@@ -1,25 +1,35 @@
-const doc = document;
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _Consent_instances, _Consent_saniziteCategories;
 export const categories = {
     ANALYTICS: 'analytics',
     EXTERNAL: 'external',
     MARKETING: 'marketing',
 };
-export default class Consent {
+const doc = document;
+const accpetedCategories = new Set();
+class Consent {
     constructor(config) {
+        _Consent_instances.add(this);
         this.setCookie = function (value, remove) {
             const consent = this;
             let expires = consent.expires;
             if (remove) {
                 expires = 'Thu, 01 Jan 1970 00:00:01 GMT';
+                value = '';
             }
             else if (!expires) {
                 const date = new Date();
                 date.setFullYear(date.getFullYear() + 1);
                 expires = date.toUTCString();
+                value = [...value].join(',');
             }
-            doc.cookie = `${consent.cookieName}=${value}; expires=${expires}` +
-                (consent.cookieDomain ? `; domain=${consent.cookieDomain}` : '') +
-                '; path=/; sameSite=Lax';
+            doc.cookie = `${consent.cookieName}=${value}; expires=${expires}`
+                + (consent.cookieDomain ? `; domain=${consent.cookieDomain}` : '')
+                + '; path=/; sameSite=Lax';
         };
         const consent = this;
         Object.assign(consent, Object.assign({ categories: [categories.ANALYTICS, categories.MARKETING, categories.EXTERNAL], container: doc.getElementById('cc'), cookieName: '_cc', modules: [] }, config));
@@ -62,31 +72,33 @@ export default class Consent {
         });
     }
     initContainer() {
-        const consent = this;
-        if (consent.container) {
-            consent.container.classList.add('active');
+        if (this.container) {
+            this.container.classList.add('active');
         }
     }
     loadModules(categories) {
-        const consent = this;
-        if (typeof categories === 'string') {
-            categories = categories.split(',');
-        }
-        consent.modules.forEach((module) => {
-            if (!module.categories || module.categories.every((category) => categories.includes(category))) {
+        categories = __classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories);
+        this.modules.forEach((module) => {
+            if (!module.categories || module.categories.every((category) => categories.has(category))) {
                 module.load();
             }
         });
     }
     setCategories(categories) {
         const consent = this;
+        categories = __classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories);
         consent.setCookie(categories);
         consent.loadModules(categories);
         if (consent.container) {
             consent.container.classList.remove('active');
         }
     }
-    // noinspection JSUnusedGlobalSymbols
+    addCategories(categories) {
+        const newCategories = [...__classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories)].filter((category) => !accpetedCategories.has(category));
+        if (newCategories) {
+            newCategories.forEach((category) => accpetedCategories.add(category));
+        }
+    }
     hasCategory(category) {
         const cookie = this.getCookie();
         return cookie && cookie.split(',').includes(category);
@@ -111,3 +123,7 @@ export default class Consent {
         return doc.querySelectorAll('.cc-checkbox');
     }
 }
+_Consent_instances = new WeakSet(), _Consent_saniziteCategories = function _Consent_saniziteCategories(categories) {
+    return new Set(typeof categories === 'string' ? categories.split(',') : categories);
+};
+export default Consent;

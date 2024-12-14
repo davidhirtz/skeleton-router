@@ -1,5 +1,3 @@
-const doc = document;
-
 export interface ConsentModule {
     categories: Array<string>;
     load: () => void;
@@ -10,6 +8,9 @@ export const categories = {
     EXTERNAL: 'external',
     MARKETING: 'marketing',
 }
+
+const doc = document;
+const accpetedCategories = new Set();
 
 export default class Consent {
     categories: Array<string>;
@@ -77,29 +78,24 @@ export default class Consent {
     }
 
     initContainer() {
-        const consent = this;
-
-        if (consent.container) {
-            consent.container.classList.add('active');
+        if (this.container) {
+            this.container.classList.add('active');
         }
     }
 
-    loadModules(categories: Array<string> | string) {
-        const consent = this;
+    loadModules(categories: Set<string> | string) {
+        categories = this.#saniziteCategories(categories);
 
-        if (typeof categories === 'string') {
-            categories = categories.split(',');
-        }
-
-        consent.modules.forEach((module) => {
-            if (!module.categories || module.categories.every((category) => categories.includes(category))) {
+        this.modules.forEach((module) => {
+            if (!module.categories || module.categories.every((category) => categories.has(category))) {
                 module.load();
             }
         });
     }
 
-    setCategories(categories: string) {
+    setCategories(categories: Set<string> | string) {
         const consent = this;
+        categories = this.#saniziteCategories(categories);
 
         consent.setCookie(categories);
         consent.loadModules(categories);
@@ -109,7 +105,14 @@ export default class Consent {
         }
     }
 
-    // noinspection JSUnusedGlobalSymbols
+    addCategories(categories: Set<string> | string) {
+        const newCategories = [...this.#saniziteCategories(categories)].filter((category) => !accpetedCategories.has(category));
+
+        if (newCategories) {
+            newCategories.forEach((category) => accpetedCategories.add(category));
+        }
+    }
+
     hasCategory(category: string) {
         const cookie = this.getCookie();
         return cookie && cookie.split(',').includes(category);
@@ -131,21 +134,23 @@ export default class Consent {
         return false;
     };
 
-    setCookie = function (value: string, remove?: boolean) {
+    setCookie = function (value: Set<string> | string, remove?: boolean) {
         const consent = this;
         let expires: string = consent.expires;
 
         if (remove) {
             expires = 'Thu, 01 Jan 1970 00:00:01 GMT';
+            value = '';
         } else if (!expires) {
             const date = new Date();
             date.setFullYear(date.getFullYear() + 1);
             expires = date.toUTCString();
+            value = [...value].join(',');
         }
 
-        doc.cookie = `${consent.cookieName}=${value}; expires=${expires}` +
-            (consent.cookieDomain ? `; domain=${consent.cookieDomain}` : '') +
-            '; path=/; sameSite=Lax';
+        doc.cookie = `${consent.cookieName}=${value}; expires=${expires}`
+            + (consent.cookieDomain ? `; domain=${consent.cookieDomain}` : '')
+            + '; path=/; sameSite=Lax';
     };
 
     getButtons(): NodeListOf<HTMLButtonElement> {
@@ -154,5 +159,9 @@ export default class Consent {
 
     getCheckboxes(): NodeListOf<HTMLInputElement> {
         return doc.querySelectorAll('.cc-checkbox');
+    }
+
+    #saniziteCategories(categories: Array<string> | Set<string> | string): Set<string> {
+        return new Set(typeof categories === 'string' ? categories.split(',') : categories);
     }
 }

@@ -8,6 +8,7 @@ export declare const categories: {
     MARKETING: string;
 };
 export default class Consent {
+    #private;
     categories: Array<string>;
     container: HTMLElement;
     cookieDomain?: string;
@@ -18,11 +19,12 @@ export default class Consent {
     init(): void;
     initButtons(): void;
     initContainer(): void;
-    loadModules(categories: Array<string> | string): void;
-    setCategories(categories: string): void;
+    loadModules(categories: Set<string> | string): void;
+    setCategories(categories: Set<string> | string): void;
+    addCategories(categories: Set<string> | string): void;
     hasCategory(category: string): boolean;
     getCookie(): string | false;
-    setCookie: (value: string, remove?: boolean) => void;
+    setCookie: (value: Set<string> | string, remove?: boolean) => void;
     getButtons(): NodeListOf<HTMLButtonElement>;
     getCheckboxes(): NodeListOf<HTMLInputElement>;
 }
