@@ -1,16 +1,24 @@
 export default class Router {
-    l: Location;
-    main: HTMLElement;
     a: string;
-    headers: {};
-    cache: {};
-    positions: {};
-    referrer: any;
-    noXhrClass: string;
-    noCacheClass: string;
-    isPopState: boolean;
+    cache: Map<string, string>;
+    ev: string;
+    headers: {
+        [key: string]: string;
+    };
     href: string;
+    isPopState: boolean;
+    l: Location;
+    link: HTMLLinkElement | undefined | null;
+    main: HTMLElement;
+    noCacheClass: string;
+    noXhrClass: string;
     params: string[];
+    positions: Map<string, {
+        x: number;
+        y: number;
+    }>;
+    referrer: any;
+    transition: boolean;
     constructor(config?: Object);
     init(): void;
     onClick(e: MouseEvent, $link: HTMLLinkElement): void;
@@ -29,6 +37,7 @@ export default class Router {
     setInnerHTML(element: HTMLElement, html: string): void;
     scrollTo(top: number | HTMLElement, offset?: number): void;
     scrollToHash(): void;
+    scrollToPath(path: Location | URL): boolean;
     scrollToHashOffset(): number;
 }
 //# sourceMappingURL=router.d.ts.map

@@ -1,6 +1,6 @@
 {
   "name": "skeleton-router",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "A simple ES6 module router",
   "type": "module",
   "main": "dist/index.js",
@@ -27,6 +27,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.8.3"
   }
 }

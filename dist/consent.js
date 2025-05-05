@@ -86,12 +86,13 @@ class Consent {
         (_a = consent.container) === null || _a === void 0 ? void 0 : _a.classList.remove('active');
     }
     addCategories(categories) {
-        const newCategories = new Set([...__classPrivateFieldGet(this, _Consent_instances, "m", _Consent_saniziteCategories).call(this, categories)].filter((category) => !this.accepted.has(category)));
+        const consent = this;
+        const newCategories = new Set([...__classPrivateFieldGet(consent, _Consent_instances, "m", _Consent_saniziteCategories).call(consent, categories)].filter((category) => !consent.accepted.has(category)));
         if (newCategories) {
-            newCategories.forEach((category) => this.accepted.add(category));
+            newCategories.forEach((category) => consent.accepted.add(category));
         }
-        this.setCookie();
-        this.loadModules(newCategories);
+        consent.setCookie();
+        consent.loadModules(newCategories);
     }
     hasCategory(category) {
         return this.accepted.has(category);

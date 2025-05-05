@@ -1,35 +1,44 @@
 export default class Router {
-    l: Location;
-    main: HTMLElement;
-    a: string;
-    headers: {};
-    cache: {};
-    positions: {};
+    a!: string;
+    cache!: Map<string, string>;
+    ev!: string
+    headers!: { [key: string]: string };
+    href!: string;
+    isPopState!: boolean;
+    l!: Location;
+    link: HTMLLinkElement | undefined | null;
+    main!: HTMLElement;
+    noCacheClass!: string;
+    noXhrClass!: string;
+    params!: string[];
+    positions!: Map<string, { x: number, y: number }>;
     referrer: any;
-    noXhrClass: string;
-    noCacheClass: string;
-    isPopState: boolean;
-    href: string;
-    params: string[];
+    transition!: boolean
 
     constructor(config?: Object) {
         const router = this;
 
         Object.assign(router, {
-            l: window.location,
-            main: document.querySelector('main'),
             a: 'active',
+            cache: new Map(),
+            ev: 'afterRender',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-Ajax-Request': 'route',
             },
-            cache: {},
-            positions: {},
-            referrer: null,
-            noXhrClass: 'no-xhr',
+            l: window.location,
+            main: document.querySelector('main'),
             noCacheClass: 'no-cache',
+            noXhrClass: 'no-xhr',
+            positions: new Map(),
+            referrer: null,
+            transition: false,
             ...config
         });
+
+        if (router.transition && !document.startViewTransition) {
+            router.transition = false;
+        }
 
         router.init();
     }
@@ -42,11 +51,13 @@ export default class Router {
         }, false);
 
         document.addEventListener('click', (e: MouseEvent) => {
-            let target = e.target as Element;
+            let target = e.target as HTMLElement | null;
+            router.link = null;
 
             while (target) {
                 if (target.matches('a')) {
-                    router.onClick.call(router, e, target);
+                    router.link = target as HTMLLinkElement;
+                    router.onClick.call(router, e, (target as HTMLLinkElement));
                     break;
                 }
 
@@ -54,12 +65,13 @@ export default class Router {
             }
         }, false);
 
+        router.afterRender();
         router.scrollToHash();
     }
 
     onClick(e: MouseEvent, $link: HTMLLinkElement) {
-        const router = this,
-            url = $link.href ? new URL($link.href) : false;
+        const router = this;
+        const url = $link.href ? new URL($link.href) : false;
 
         if (e.defaultPrevented
             || e.ctrlKey
@@ -68,7 +80,7 @@ export default class Router {
             || !url
             || $link.hasAttribute('download')
             || $link.classList.contains(router.noXhrClass)
-            || $link.target && $link.target !== '_self'
+            || $link.hasAttribute('target') && $link.getAttribute('target') !== '_self'
             || url.host !== router.l.host
         ) {
             return;
@@ -82,14 +94,8 @@ export default class Router {
             return
         }
 
-
-        if (url.hash) {
-            const element = document.getElementById(url.hash.substring(1));
-
-            if (element) {
-                router.scrollTo(element, router.scrollToHashOffset());
-                return;
-            }
+        if (router.scrollToPath(url)) {
+            return
         }
 
         router.onUnhandledClick(e, $link);
@@ -114,11 +120,11 @@ export default class Router {
     load(disableCache?: boolean) {
         const router = this;
 
-        router.positions[router.referrer] = {x: window.scrollX, y: window.scrollY};
+        router.positions.set(router.referrer, {x: window.scrollX, y: window.scrollY});
         router.getRequest();
 
         if (router.beforeLoad()) {
-            if (disableCache || !router.cache[router.href]) {
+            if (disableCache || !router.cache.has(router.href)) {
                 const request = new XMLHttpRequest();
                 request.open('GET', router.href, true);
 
@@ -139,7 +145,7 @@ export default class Router {
                             }
                         }
                     } else {
-                        router.cache[router.href] = this.response;
+                        router.cache.set(router.href, this.response);
                         router.afterLoad();
                     }
                 };
@@ -162,10 +168,17 @@ export default class Router {
 
     render(): void {
         const router = this;
+        const renderInternal = () => {
+            router.renderContent(router.cache.get(router.href)!);
+            router.afterRender();
+        }
 
         if (router.beforeRender()) {
-            router.renderContent(router.cache[router.href]);
-            router.afterRender();
+            if (router.transition) {
+                document.startViewTransition(() => renderInternal());
+            } else {
+                renderInternal();
+            }
         }
 
         router.referrer = router.href;
@@ -175,8 +188,6 @@ export default class Router {
     renderContent(html: string): void {
         const router = this;
 
-        // Fixes iOS Safari bug which loads full page on browser startup, check for "<!DOCTYPE html>" and
-        // reload full page if needed
         if (html && html.trim().startsWith('<!DOC')) {
             location.reload();
         } else {
@@ -187,12 +198,14 @@ export default class Router {
     }
 
     afterRender(): void {
+        document.dispatchEvent(new Event(this.ev));
     }
 
     resetScrollPosition(): void {
         const router = this;
-        const hasPrevPos = router.isPopState && router.positions[router.href];
-        window.scrollTo(hasPrevPos ? router.positions[router.href].x : 0, hasPrevPos ? router.positions[router.href].y : 0);
+        const hasPrevPos = router.isPopState && router.positions.has(router.href);
+        const position = hasPrevPos ? router.positions.get(router.href)! : {x: 0, y: 0};
+        window.scrollTo(position.x, position.y);
     }
 
     getRequest() {
@@ -216,7 +229,7 @@ export default class Router {
             Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
             newScript.appendChild(document.createTextNode(oldScript.innerHTML));
 
-            oldScript.parentNode.replaceChild(newScript, oldScript);
+            oldScript.parentNode!.replaceChild(newScript, oldScript);
         });
     }
 
@@ -228,12 +241,19 @@ export default class Router {
     }
 
     scrollToHash() {
+        this.scrollToPath(this.l);
+    }
+
+    scrollToPath(path: Location | URL) {
         const router = this;
-        const target = location.hash ? document.getElementById(location.hash.substring(1)) : null;
+        const target = path.hash ? document.getElementById(path.hash.substring(1)) : null;
 
         if (target) {
             router.scrollTo(target, router.scrollToHashOffset());
+            return true;
         }
+
+        return false;
     }
 
     scrollToHashOffset() {
