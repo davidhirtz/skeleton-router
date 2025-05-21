@@ -65,7 +65,6 @@ export default class Router {
             }
         }, false);
 
-        router.afterRender();
         router.scrollToHash();
     }
 
