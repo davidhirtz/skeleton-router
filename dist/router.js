@@ -27,7 +27,6 @@ export default class Router {
                 target = target.parentElement;
             }
         }, false);
-        router.afterRender();
         router.scrollToHash();
     }
     onClick(e, $link) {

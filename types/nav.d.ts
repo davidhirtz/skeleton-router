@@ -1,9 +1,9 @@
 export default class Nav {
-    links: NodeListOf<HTMLLinkElement>;
-    active: Array<HTMLLinkElement>;
+    $links: NodeListOf<HTMLLinkElement>;
+    $active: Set<HTMLLinkElement>;
     matchAll: boolean;
-    constructor(config?: any);
+    constructor(config?: Object);
     update(): void;
-    updateByPathname(pathname: any): void;
+    updateByPathname(pathname: string): void;
 }
 //# sourceMappingURL=nav.d.ts.map
